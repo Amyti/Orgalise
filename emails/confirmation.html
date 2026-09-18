@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Confirme ton adresse</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600&family=Karla:wght@400;600;700&display=swap');
+
+  /* Apple Mail respecte ces règles ; Gmail les ignore et garde le thème
+     clair posé en inline. Les deux restent lisibles. */
+  @media (prefers-color-scheme: dark) {
+    .bg      { background: #191712 !important; }
+    .card    { background: #211E18 !important; border-color: #3A352B !important; }
+    .ink     { color: #F2EDE2 !important; }
+    .soft    { color: #A8A093 !important; }
+    .rule    { background: #3A352B !important; }
+    .btn-td  { background: #F2EDE2 !important; }
+    .btn-a   { color: #191712 !important; }
+    .tip     { background: #3B3322 !important; }
+    .tip-ink { color: #F0DDB0 !important; }
+  }
+</style>
+</head>
+
+<body class="bg" style="margin:0; padding:0; width:100%; background:#F5F1E8;">
+
+  <!-- Ligne d'aperçu dans la boîte de réception, jamais affichée à l'ouverture. -->
+  <div style="display:none; max-height:0; overflow:hidden; opacity:0;">
+    Un clic pour activer ton compte Orgalise.
+    &#8199;&#65279;&#8199;&#65279;&#8199;&#65279;&#8199;&#65279;&#8199;&#65279;&#8199;&#65279;&#8199;&#65279;&#8199;&#65279;
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" class="bg" style="background:#F5F1E8;">
+    <tr>
+      <td align="center" style="padding:32px 20px 40px;">
+
+        <table role="presentation" width="440" cellpadding="0" cellspacing="0" border="0" class="card" style="width:440px; max-width:100%; background:#FFFDF8; border:1px solid #E7E0D0; border-radius:18px;">
+
+          <!-- Les deux rubans de l'agenda : la signature visuelle du produit. -->
+          <tr>
+            <td height="5" width="56%" style="height:5px; line-height:5px; font-size:0; background:#A94F2E; border-radius:17px 0 0 0;">&nbsp;</td>
+            <td height="5" width="44%" style="height:5px; line-height:5px; font-size:0; background:#4F6549; border-radius:0 17px 0 0;">&nbsp;</td>
+          </tr>
+
+          <tr>
+            <td colspan="2" style="padding:32px 32px 30px;">
+
+              <div class="ink" style="font-family:'Fraunces',Georgia,'Times New Roman',serif; font-size:19px; font-weight:600; color:#1F1C18; letter-spacing:-0.01em;">
+                Orgalise
+              </div>
+
+              <div style="height:26px; line-height:26px; font-size:0;">&nbsp;</div>
+
+              <h1 class="ink" style="margin:0; font-family:'Fraunces',Georgia,'Times New Roman',serif; font-size:27px; font-weight:600; line-height:1.2; color:#1F1C18; letter-spacing:-0.015em;">
+                Confirme ton adresse
+              </h1>
+
+              <div style="height:12px; line-height:12px; font-size:0;">&nbsp;</div>
+
+              <p class="soft" style="margin:0; font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:15px; line-height:1.6; color:#6B6358;">
+                Ton compte est presque prêt. Un clic pour vérifier que cette
+                adresse est bien la tienne, et tu pourras te connecter.
+              </p>
+
+              <div style="height:26px; line-height:26px; font-size:0;">&nbsp;</div>
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="btn-td" align="center" bgcolor="#221F1A" style="background:#221F1A; border-radius:12px;">
+                    <a class="btn-a" href="{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email"
+                       style="display:inline-block; padding:15px 28px; font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:16px; font-weight:700; line-height:1; color:#FFFDF8; text-decoration:none; border-radius:12px;">
+                      Confirmer mon adresse
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="height:26px; line-height:26px; font-size:0;">&nbsp;</div>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td class="tip" style="background:#F6E2B2; border-radius:12px; padding:13px 15px;">
+                    <span class="tip-ink" style="font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:13px; font-weight:600; line-height:1.5; color:#6B5312;">
+                      Sur iPhone, ce lien s'ouvre dans Safari. Une fois confirmée,
+                      reviens dans Orgalise depuis l'icône de ton écran d'accueil
+                      et connecte-toi avec tes identifiants.
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="height:28px; line-height:28px; font-size:0;">&nbsp;</div>
+              <div class="rule" style="height:1px; line-height:1px; font-size:0; background:#E7E0D0;">&nbsp;</div>
+              <div style="height:20px; line-height:20px; font-size:0;">&nbsp;</div>
+
+              <p class="soft" style="margin:0 0 6px; font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:12px; line-height:1.55; color:#6B6358;">
+                Si le bouton ne réagit pas, copie cette adresse dans ton navigateur :
+              </p>
+              <p class="soft" style="margin:0; font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:12px; line-height:1.55; color:#6B6358; word-break:break-all;">
+                {{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=email
+              </p>
+
+              <div style="height:16px; line-height:16px; font-size:0;">&nbsp;</div>
+
+              <p class="soft" style="margin:0; font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:12px; line-height:1.55; color:#6B6358;">
+                Tu n'as pas créé de compte&nbsp;? Ignore ce message, rien ne sera activé.
+              </p>
+
+            </td>
+          </tr>
+        </table>
+
+        <div style="height:18px; line-height:18px; font-size:0;">&nbsp;</div>
+        <div class="soft" style="font-family:'Karla',-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif; font-size:12px; color:#6B6358;">
+          Orgalise — agenda partagé et suivi de dépenses
+        </div>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>
