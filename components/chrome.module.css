@@ -1,0 +1,86 @@
+/* Navigation basse et bouton flottant — communs à tous les écrans internes. */
+
+.nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  height: calc(74px + env(safe-area-inset-bottom));
+  padding: 11px 20px env(safe-area-inset-bottom) 20px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--border);
+  background: var(--ground);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  z-index: 20;
+}
+
+.navItem {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: var(--tap);
+  min-height: var(--tap);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.navItem:hover {
+  color: var(--ink-soft);
+}
+
+.navItemActive {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.navItemActive:hover {
+  color: var(--ink);
+}
+
+/* Réserve la place de la barre sous le contenu de chaque écran. */
+.navSpacer {
+  height: calc(74px + env(safe-area-inset-bottom));
+  flex-shrink: 0;
+}
+
+/* Conteneur centré : sans lui, en écran large le bouton irait se coller
+   au bord de la fenêtre au lieu du bord de l'app. */
+.fabLayer {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 440px;
+  height: 0;
+  z-index: 25;
+  pointer-events: none;
+}
+
+.fab {
+  position: absolute;
+  right: 20px;
+  bottom: calc(88px + env(safe-area-inset-bottom));
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: var(--ink-strong);
+  color: var(--on-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* La seule ombre portée autorisée par le design system. */
+  box-shadow: 0 6px 18px var(--shadow);
+  pointer-events: auto;
+}
+
+.fab:hover {
+  color: var(--on-strong);
+}

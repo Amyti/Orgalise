@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=Karla:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Karla', 'Helvetica Neue', sans-serif; background: #F5F1E8; }
+    a { color: #1F1C18; text-decoration: none; }
+    a:hover { color: #A94F2E; }
+  </style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F1E8; color: #1F1C18; position: relative; overflow: hidden; display: flex; flex-direction: column;">
+
+  <div style="padding: 24px 20px 0 20px; display: flex; align-items: flex-end; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; gap: 2px;">
+      <a href="Main.dc.html" style="font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; color: #6B6358; font-weight: 600; display: flex; align-items: center; gap: 5px;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#6B6358" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+        Semaine
+      </a>
+      <div style="font-family: 'Fraunces', Georgia, serif; font-size: 30px; font-weight: 600; line-height: 1.15;">Septembre</div>
+    </div>
+    <div style="display: flex; gap: 6px; padding-bottom: 4px;">
+      <button type="button" aria-label="Mois précédent" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #E7E0D0; background: #FFFDF8; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1F1C18" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+      </button>
+      <button type="button" aria-label="Mois suivant" style="width: 44px; height: 44px; border-radius: 12px; border: 1px solid #E7E0D0; background: #FFFDF8; cursor: pointer; display: flex; align-items: center; justify-content: center;">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1F1C18" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <div style="padding: 20px 20px 8px 20px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px;">
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">L</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">M</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">M</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">J</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">V</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">S</div>
+    <div style="text-align: center; font-size: 10px; letter-spacing: 0.8px; font-weight: 700; color: #6B6358;">D</div>
+  </div>
+
+  <div style="padding: 0 20px; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 5px;">
+    <sc-for list="{{cells}}" as="c" hint-placeholder-count="35">
+      <a href="Jour.dc.html" style="{{c.cell}}">
+        <div style="{{c.num}}">{{c.day}}</div>
+        <div style="display: flex; flex-direction: column; gap: 2.5px; width: 100%;">
+          <div style="height: 3.5px; border-radius: 2px; background: #EAE3D4; overflow: hidden;">
+            <div style="{{c.mine}}"></div>
+          </div>
+          <div style="height: 3.5px; border-radius: 2px; background: #EAE3D4; overflow: hidden;">
+            <div style="{{c.hers}}"></div>
+          </div>
+        </div>
+        <sc-if value="{{c.dot}}" hint-placeholder-val="{{ true }}">
+          <div style="position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: #221F1A;"></div>
+        </sc-if>
+      </a>
+    </sc-for>
+  </div>
+
+  <div style="margin: 16px 20px 0 20px; display: flex; flex-wrap: wrap; gap: 9px 14px; font-size: 10.5px; color: #6B6358; font-weight: 600;">
+    <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 4px; border-radius: 2px; background: {{moi}}; display: inline-block;"></span>Ton taux d'occupation</div>
+    <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 14px; height: 4px; border-radius: 2px; background: {{elle}}; display: inline-block;"></span>Le sien</div>
+    <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 10px; height: 10px; border-radius: 3px; background: #F6E2B2; display: inline-block;"></span>Journée ouverte à deux</div>
+    <div style="display: flex; align-items: center; gap: 5px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #221F1A; display: inline-block;"></span>Un truc prévu ensemble</div>
+  </div>
+
+  <div style="margin: 16px 20px 0 20px; background: #221F1A; color: #FFFDF8; border-radius: 14px; padding: 15px 17px; display: flex; align-items: center; justify-content: space-between; gap: 12px;">
+    <div>
+      <div style="font-family: 'Fraunces', Georgia, serif; font-size: 19px; font-weight: 600; line-height: 1.2;">9 journées ouvertes</div>
+      <div style="font-size: 11.5px; opacity: 0.72; margin-top: 2px;">où vous êtes libres tous les deux</div>
+    </div>
+    <div style="width: 40px; height: 40px; border-radius: 50%; background: #F6E2B2; flex-shrink: 0; display: flex; align-items: center; justify-content: center;">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#221F1A" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h13M13 6l6 6-6 6"></path></svg>
+    </div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="height: 74px; flex-shrink: 0; border-top: 1px solid #E7E0D0; display: flex; align-items: flex-start; padding: 11px 26px 0 26px; justify-content: space-between;">
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 44px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#1F1C18" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"></rect><path d="M8 3v4M16 3v4M3 10h18"></path></svg>
+      <span style="font-size: 10px; font-weight: 700;">Agenda</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 44px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6B6358" stroke-width="1.8" stroke-linecap="round"><path d="M3 7h18v12H3z"></path><path d="M3 11h18M7 15h3"></path></svg>
+      <span style="font-size: 10px; color: #6B6358; font-weight: 600;">Dépenses</span>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 4px; min-width: 44px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#6B6358" stroke-width="1.8" stroke-linecap="round"><circle cx="9" cy="8" r="3.2"></circle><circle cx="16.5" cy="9.5" r="2.4"></circle><path d="M3.5 19c.6-3.2 2.8-5 5.5-5s4.9 1.8 5.5 5"></path></svg>
+      <span style="font-size: 10px; color: #6B6358; font-weight: 600;">Nous</span>
+    </div>
+  </div>
+
+  <button type="button" aria-label="Ajouter un événement" style="position: absolute; right: 20px; bottom: 88px; width: 56px; height: 56px; border-radius: 50%; border: none; background: #1F1C18; color: #FFFDF8; font-size: 26px; line-height: 1; cursor: pointer; box-shadow: 0 6px 18px rgba(31,28,24,0.24);">+</button>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"moi":{"editor":"color","default":"#A94F2E","options":["#A94F2E","#8A5A2B","#9B4B62","#3F6B70"]},"elle":{"editor":"color","default":"#4F6549","options":["#4F6549","#3F6B70","#6B5A8A","#8A5A2B"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    var moi = this.props.moi || '#A94F2E';
+    var elle = this.props.elle || '#4F6549';
+
+    // [jour affiché, hors-mois, occupation toi 0-1, occupation elle 0-1, truc à deux]
+    var raw = [
+      [31, 1, 0.55, 0.50, 0], [1, 0, 0.60, 0.55, 0], [2, 0, 0.55, 0.40, 0], [3, 0, 0.60, 0.55, 0], [4, 0, 0.55, 0.45, 1], [5, 0, 0.15, 0.00, 1], [6, 0, 0.00, 0.10, 1],
+      [7, 0, 0.60, 0.50, 0], [8, 0, 0.55, 0.55, 0], [9, 0, 0.60, 0.35, 0], [10, 0, 0.50, 0.55, 0], [11, 0, 0.60, 0.45, 1], [12, 0, 0.20, 0.00, 0], [13, 0, 0.00, 0.00, 1],
+      [14, 0, 0.60, 0.55, 0], [15, 0, 0.25, 0.50, 0], [16, 0, 0.60, 0.40, 1], [17, 0, 0.25, 0.45, 0], [18, 0, 0.60, 0.45, 1], [19, 0, 0.15, 0.00, 1], [20, 0, 0.00, 0.00, 1],
+      [21, 0, 0.60, 0.50, 0], [22, 0, 0.55, 0.55, 0], [23, 0, 0.60, 0.40, 0], [24, 0, 0.55, 0.50, 1], [25, 0, 0.60, 0.45, 0], [26, 0, 0.00, 0.20, 1], [27, 0, 0.00, 0.00, 0],
+      [28, 0, 0.60, 0.55, 0], [29, 0, 0.55, 0.45, 0], [30, 0, 0.60, 0.50, 1], [1, 1, 0.50, 0.45, 0], [2, 1, 0.55, 0.40, 0], [3, 1, 0.20, 0.10, 0], [4, 1, 0.00, 0.00, 0]
+    ];
+
+    var cells = raw.map(function (r) {
+      var day = r[0], out = r[1] === 1, a = r[2], b = r[3], dot = r[4] === 1;
+      var open = !out && a <= 0.2 && b <= 0.2;
+      var today = !out && day === 17;
+
+      var cell = 'position:relative;box-sizing:border-box;height:66px;border-radius:10px;padding:7px 6px 8px 6px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;border:1px solid #E7E0D0;background:#FFFDF8;color:#1F1C18;';
+      if (open) { cell = cell.replace('background:#FFFDF8;', 'background:#F6E2B2;').replace('border:1px solid #E7E0D0;', 'border:1px solid #E8D29A;'); }
+      if (out) { cell = cell.replace('background:#FFFDF8;', 'background:#F0ECE1;'); }
+      if (today) { cell += 'border:1.5px solid #1F1C18;'; }
+
+      var num = "font-family:'Fraunces',Georgia,serif;font-size:16px;font-weight:600;line-height:1;";
+      if (out) { num += 'color:#A9A192;'; }
+      else if (today) { num += 'color:#A94F2E;'; }
+
+      function fill(v, c) {
+        return 'height:100%;border-radius:2px;background:' + (out ? '#CFC7B6' : c) + ';width:' + Math.round(v * 100) + '%;';
+      }
+
+      return {
+        day: String(day),
+        cell: cell,
+        num: num,
+        mine: fill(a, moi),
+        hers: fill(b, elle),
+        dot: dot
+      };
+    });
+
+    return { cells: cells, moi: moi, elle: elle };
+  }
+}
+</script>
+</body>
+</html>

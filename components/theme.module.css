@@ -1,0 +1,30 @@
+/* Sélecteur d'apparence : clair · système · sombre. */
+
+.group {
+  display: flex;
+  gap: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  padding: 5px;
+  margin-top: 10px;
+}
+
+.option {
+  flex-grow: 1;
+  flex-basis: 0;
+  min-height: 38px;
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  background: transparent;
+  color: var(--ink-soft);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.optionOn {
+  background: var(--ink-strong);
+  border-color: var(--strong-line);
+  color: var(--on-strong);
+  font-weight: 700;
+}

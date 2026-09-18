@@ -1,0 +1,722 @@
+<title>Charte pastel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Karla:wght@400;500;600;700&display=swap">
+<style>
+  /* Une charte de couleurs ne peut pas s'inverser sans mentir sur ses
+     propres valeurs : thème unique, assumé, toutes les couleurs peintes. */
+  :root {
+    --ground: #f7f3f7;
+    --surface: #fffcfe;
+    --ink: #3b3044;
+    --ink-soft: #746783;
+    --ink-strong: #c9b7e2;
+    --on-strong: #3a2b4e;
+    --honey: #fbe7c4;
+    --honey-ink: #6b5318;
+    --user-a: #e5a69c;
+    --user-b: #9dc0aa;
+    --on-user: #3b3044;
+
+    --honey-line: #db900f;
+    --user-a-line: #d16251;
+    --user-b-line: #5c8f6f;
+    --strong-line: #8f6ac3;
+
+    --border: #ece3f0;
+    --rule: #e7dcec;
+    --separator: #f0e9f3;
+
+    --display: 'Fraunces', Georgia, serif;
+    --text: 'Karla', 'Helvetica Neue', system-ui, sans-serif;
+    color-scheme: light;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font-family: var(--text);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 64px 28px 96px;
+    display: flex;
+    flex-direction: column;
+    gap: 60px;
+  }
+
+  /* --- En-tête ------------------------------------------------------ */
+
+  .masthead { display: flex; flex-direction: column; gap: 18px; }
+
+  .dots { display: flex; align-items: center; }
+  .dot {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 2px solid var(--ground);
+  }
+  .dot-a { background: var(--user-a); box-shadow: inset 0 0 0 1.5px var(--user-a-line); }
+  .dot-b {
+    background: var(--user-b); box-shadow: inset 0 0 0 1.5px var(--user-b-line);
+    margin-left: -13px;
+  }
+
+  h1 {
+    font-family: var(--display);
+    font-weight: 600;
+    font-size: clamp(38px, 7vw, 54px);
+    line-height: 1.08;
+    margin: 0;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+
+  .lede {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 54ch;
+    margin: 0;
+  }
+
+  /* --- Sections ----------------------------------------------------- */
+
+  section { display: flex; flex-direction: column; gap: 20px; }
+
+  .eyebrow {
+    font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+    font-weight: 700; color: var(--ink-soft); margin: 0;
+  }
+
+  h2 {
+    font-family: var(--display); font-weight: 600;
+    font-size: 26px; line-height: 1.2; margin: 0; text-wrap: balance;
+  }
+
+  .note { font-size: 14.5px; color: var(--ink-soft); max-width: 62ch; margin: 0; }
+
+  /* --- La semaine --------------------------------------------------- */
+
+  .week {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 18px 20px;
+    display: flex; flex-direction: column;
+  }
+
+  .day {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid var(--separator);
+  }
+  .day:last-of-type { border-bottom: 0; }
+
+  .stamp { width: 40px; flex-shrink: 0; text-align: center; }
+  .stamp .dow { font-size: 9.5px; letter-spacing: 1px; font-weight: 700; color: var(--ink-soft); }
+  .stamp .num { font-family: var(--display); font-size: 19px; font-weight: 600; line-height: 1.1; }
+
+  /* Même géométrie que l'app : bande 7 h → 23 h, 30 px de haut. */
+  .strip {
+    position: relative; height: 30px; flex-grow: 1;
+    background: var(--ground);
+    border: 1px solid var(--rule);
+    border-radius: 11px;
+    overflow: hidden;
+  }
+  .free {
+    position: absolute; top: 0; bottom: 0;
+    background: var(--honey); border: 1px solid var(--honey-line);
+    border-radius: 8px;
+  }
+  .lanes {
+    position: absolute; left: 0; right: 0; top: 4px; bottom: 4px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .lane { position: relative; flex-grow: 1; }
+  .ribbon { position: absolute; top: 0; bottom: 0; border-radius: 5px; border: 1px solid; }
+  .r-a { background: var(--user-a); border-color: var(--user-a-line); }
+  .r-b { background: var(--user-b); border-color: var(--user-b-line); }
+  .event {
+    position: absolute; top: 4px; bottom: 4px;
+    background: var(--ink-strong); border: 2px solid var(--strong-line);
+    border-radius: 7px;
+  }
+
+  .scale {
+    display: flex; justify-content: space-between;
+    margin: 8px 0 0 52px;
+    font-size: 10px; font-weight: 600; color: var(--ink-soft);
+  }
+
+  /* --- L'échelle des traits ----------------------------------------- */
+
+  .strokes { display: flex; flex-direction: column; gap: 0; }
+  .stroke {
+    display: flex; align-items: center; gap: 16px;
+    padding: 15px 0; border-bottom: 1px solid var(--rule);
+  }
+  .stroke:last-child { border-bottom: 0; }
+  .sample { width: 64px; height: 30px; border-radius: 10px; flex-shrink: 0; }
+  .s-free { background: var(--honey); border: 1px solid var(--honey-line); }
+  .s-a { background: var(--user-a); border: 1px solid var(--user-a-line); }
+  .s-b { background: var(--user-b); border: 1px solid var(--user-b-line); }
+  .s-both { background: var(--ink-strong); border: 2px solid var(--strong-line); }
+  .stroke-name { font-weight: 700; font-size: 14.5px; }
+  .stroke-desc { font-size: 13.5px; color: var(--ink-soft); }
+  .stroke-w {
+    margin-left: auto; flex-shrink: 0;
+    font-size: 12px; font-weight: 700; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Palette ------------------------------------------------------ */
+
+  .swatches {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 10px;
+  }
+  .swatch {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 15px; overflow: hidden;
+  }
+  .swatch-fill { height: 62px; border-bottom: 1px solid var(--border); }
+  .swatch-body { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 2px; }
+  .swatch-name { font-size: 12.5px; font-weight: 700; }
+  .swatch-hex {
+    font-size: 11.5px; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums; letter-spacing: 0.02em;
+  }
+  .swatch-use { font-size: 11.5px; color: var(--ink-soft); }
+
+  /* --- Catégories ---------------------------------------------------- */
+
+  .cats { display: flex; flex-direction: column; gap: 12px; }
+  .cat-bar { display: flex; height: 18px; border-radius: 9px; overflow: hidden; gap: 2px; }
+  .cat-bar > span { flex: 1; }
+  .cat-list {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(152px, 1fr)); gap: 8px;
+  }
+  .cat {
+    display: flex; align-items: center; gap: 9px;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 9px 11px;
+  }
+  .cat-dot { width: 13px; height: 13px; border-radius: 50%; flex-shrink: 0; }
+  .cat-name { font-size: 12.5px; font-weight: 700; }
+  .cat-hex {
+    margin-left: auto; font-size: 11px; color: var(--ink-soft);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* --- Typographie --------------------------------------------------- */
+
+  .specimen {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 20px; padding: 24px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .spec-row { display: flex; flex-direction: column; gap: 4px; }
+  .spec-meta {
+    font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase;
+    font-weight: 700; color: var(--ink-soft);
+  }
+  .spec-display { font-family: var(--display); font-weight: 600; font-size: 38px; line-height: 1.12; }
+  .spec-amount {
+    font-family: var(--display); font-weight: 600; font-size: 30px;
+    font-variant-numeric: tabular-nums;
+  }
+  .spec-body { font-size: 15px; max-width: 58ch; }
+
+  /* --- Composants ---------------------------------------------------- */
+
+  .demo { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+  .btn {
+    height: 52px; padding: 0 28px; border-radius: 26px;
+    background: var(--ink-strong); border: 2px solid var(--strong-line);
+    color: var(--on-strong); font-family: var(--text);
+    font-size: 15px; font-weight: 700;
+    display: inline-flex; align-items: center;
+  }
+  .btn-ghost {
+    background: var(--surface); border: 1px solid var(--rule); color: var(--ink);
+    font-weight: 600;
+  }
+  .card-demo {
+    background: var(--ink-strong); border: 2px solid var(--strong-line);
+    color: var(--on-strong); border-radius: 20px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 4px; flex: 1 1 240px;
+  }
+  .card-tag {
+    font-size: 10px; letter-spacing: 1.2px; font-weight: 700;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .card-tag span {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--honey); border: 1px solid var(--honey-line);
+  }
+  .card-title { font-family: var(--display); font-size: 21px; font-weight: 600; }
+  .card-meta { font-size: 12.5px; opacity: 0.75; }
+
+  /* --- Mode sombre : montré, pas appliqué à la page ------------------ */
+
+  .night {
+    background: #1b1622;
+    border: 1px solid #332b3e;
+    border-radius: 20px;
+    padding: 20px;
+    display: flex; flex-direction: column; gap: 18px;
+  }
+  .night-week { display: flex; flex-direction: column; gap: 10px; }
+  .night-day { display: flex; align-items: center; gap: 12px; }
+  .night-stamp {
+    width: 40px; flex-shrink: 0; text-align: center;
+    font-size: 9.5px; letter-spacing: 1px; font-weight: 700; color: #a79bb3;
+  }
+  .night-strip {
+    position: relative; height: 30px; flex-grow: 1;
+    background: #241e2e; border: 1px solid #2e2739;
+    border-radius: 11px; overflow: hidden;
+  }
+  .night-lanes {
+    position: absolute; left: 0; right: 0; top: 4px; bottom: 4px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .n-free {
+    position: absolute; top: 0; bottom: 0;
+    background: #5e4a26; border: 1px solid #b08f4a; border-radius: 8px;
+  }
+  .n-a, .n-b {
+    position: absolute; top: 0; bottom: 0; border-radius: 5px; border: 1px solid;
+  }
+  .n-a { background: #6e4640; border-color: #cd8a80; }
+  .n-b { background: #3f5a48; border-color: #85b295; }
+  .n-event {
+    position: absolute; top: 4px; bottom: 4px;
+    background: #4a3a66; border: 2px solid #a78fd6; border-radius: 7px;
+  }
+  .night-swatches {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: 8px;
+  }
+  .night-sw {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 11.5px; color: #a79bb3;
+    font-variant-numeric: tabular-nums;
+  }
+  .night-sw > span {
+    width: 34px; height: 22px; border-radius: 7px; flex-shrink: 0;
+  }
+
+  /* --- Règle --------------------------------------------------------- */
+
+  .rule-card {
+    background: var(--honey); border: 1px solid var(--honey-line);
+    color: var(--honey-ink);
+    border-radius: 18px; padding: 18px 20px;
+    display: flex; flex-direction: column; gap: 6px;
+  }
+  .rule-title { font-family: var(--display); font-size: 18px; font-weight: 600; }
+  .rule-body { font-size: 13.5px; max-width: 60ch; }
+
+  footer {
+    border-top: 1px solid var(--rule); padding-top: 20px;
+    font-size: 13px; color: var(--ink-soft);
+  }
+
+  @media (max-width: 560px) {
+    .page { padding: 44px 20px 72px; gap: 48px; }
+  }
+</style>
+
+<div class="page">
+
+  <header class="masthead">
+    <div class="dots" aria-hidden="true">
+      <div class="dot dot-a"></div>
+      <div class="dot dot-b"></div>
+    </div>
+    <h1>Charte pastel</h1>
+    <p class="lede">
+      Tout est pastel — il n'y a plus un seul aplat sombre dans l'app.
+      Ce n'est donc plus la couleur qui hiérarchise, c'est l'épaisseur
+      du trait.
+    </p>
+  </header>
+
+  <!-- L'objet qui n'existe que dans ce produit : la semaine. -->
+  <section>
+    <p class="eyebrow">La grammaire</p>
+    <h2>Une semaine réelle, dans les nouvelles couleurs</h2>
+    <p class="note">
+      Deux rubans fins par jour, un par personne. Fond miel quand personne
+      n'est pris. Aplat lavande quand quelque chose est décidé à deux.
+    </p>
+
+    <div class="week">
+      <div class="day">
+        <div class="stamp"><div class="dow">LUN</div><div class="num">14</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:9.4%"></div>
+          <div class="free" style="left:68.8%;width:31.2%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:9.4%;width:59.4%"></div></div>
+            <div class="lane"><div class="ribbon r-b" style="left:9.4%;width:62.5%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">MAR</div><div class="num">15</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:9.4%"></div>
+          <div class="free" style="left:62.5%;width:9.4%"></div>
+          <div class="free" style="left:81.3%;width:18.7%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:9.4%;width:28.1%"></div></div>
+            <div class="lane">
+              <div class="ribbon r-b" style="left:12.5%;width:50%"></div>
+              <div class="ribbon r-b" style="left:71.9%;width:9.4%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">MER</div><div class="num">16</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:9.4%"></div>
+          <div class="free" style="left:68.8%;width:31.2%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:9.4%;width:59.4%"></div></div>
+            <div class="lane"><div class="ribbon r-b" style="left:18.8%;width:37.5%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">JEU</div><div class="num">17</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:9.4%"></div>
+          <div class="free" style="left:37.5%;width:6.3%"></div>
+          <div class="free" style="left:68.8%;width:31.2%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:9.4%;width:28.1%"></div></div>
+            <div class="lane">
+              <div class="ribbon r-b" style="left:9.4%;width:21.9%"></div>
+              <div class="ribbon r-b" style="left:43.8%;width:25%"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">VEN</div><div class="num">18</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:9.4%"></div>
+          <div class="free" style="left:68.8%;width:9.4%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:9.4%;width:59.4%"></div></div>
+            <div class="lane"><div class="ribbon r-b" style="left:12.5%;width:50%"></div></div>
+          </div>
+          <!-- Dîner dehors, 19 h 30 → 22 h : le trait le plus épais. -->
+          <div class="event" style="left:78.1%;width:15.6%"></div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">SAM</div><div class="num">19</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:25%"></div>
+          <div class="free" style="left:37.5%;width:62.5%"></div>
+          <div class="lanes">
+            <div class="lane"><div class="ribbon r-a" style="left:25%;width:12.5%"></div></div>
+            <div class="lane"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="day">
+        <div class="stamp"><div class="dow">DIM</div><div class="num">20</div></div>
+        <div class="strip">
+          <div class="free" style="left:0%;width:100%"></div>
+          <div class="lanes"><div class="lane"></div><div class="lane"></div></div>
+        </div>
+      </div>
+
+      <div class="scale" aria-hidden="true">
+        <span>7 h</span><span>13 h</span><span>18 h</span><span>23 h</span>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Hiérarchie</p>
+    <h2>Le trait dit l'engagement</h2>
+    <p class="note">
+      Quatre aplats, quatre épaisseurs de contour. Plus c'est décidé, plus
+      le trait est épais — c'est la seule chose qui hiérarchise, puisque
+      toutes les couleurs sont également claires.
+    </p>
+
+    <div class="strokes">
+      <div class="stroke">
+        <div class="sample s-free"></div>
+        <div>
+          <div class="stroke-name">Libre à deux</div>
+          <div class="stroke-desc">Le temps qui reste. Filet le plus léger.</div>
+        </div>
+        <div class="stroke-w">1 px</div>
+      </div>
+      <div class="stroke">
+        <div class="sample s-a"></div>
+        <div>
+          <div class="stroke-name">Occupé — personne 1</div>
+          <div class="stroke-desc">Rose dragée, importé du calendrier perso.</div>
+        </div>
+        <div class="stroke-w">1 px</div>
+      </div>
+      <div class="stroke">
+        <div class="sample s-b"></div>
+        <div>
+          <div class="stroke-name">Occupé — personne 2</div>
+          <div class="stroke-desc">Sauge tendre, même traitement.</div>
+        </div>
+        <div class="stroke-w">1 px</div>
+      </div>
+      <div class="stroke">
+        <div class="sample s-both"></div>
+        <div>
+          <div class="stroke-name">Décidé à deux</div>
+          <div class="stroke-desc">Lavande. Le seul trait de 2 px de l'app.</div>
+        </div>
+        <div class="stroke-w">2 px</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Composants</p>
+    <h2>Les aplats portent du texte foncé</h2>
+    <p class="note">
+      Plus aucune carte sombre : le lavande reçoit une encre prune, jamais
+      du blanc.
+    </p>
+
+    <div class="demo">
+      <div class="card-demo">
+        <div class="card-tag"><span></span>PROCHAIN TRUC À DEUX</div>
+        <div class="card-title">Dîner dehors</div>
+        <div class="card-meta">Ce soir, 19 h 30 · dans 6 heures</div>
+      </div>
+    </div>
+
+    <div class="demo">
+      <button type="button" class="btn">Se connecter</button>
+      <button type="button" class="btn btn-ghost">Recevoir un lien</button>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Palette</p>
+    <h2>Sept couleurs, et leurs contours</h2>
+
+    <div class="swatches">
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #f7f3f7"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Lilas papier</div>
+          <div class="swatch-hex">#F7F3F7</div>
+          <div class="swatch-use">Fond général</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #fffcfe"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Blanc rosé</div>
+          <div class="swatch-hex">#FFFCFE</div>
+          <div class="swatch-use">Cartes et champs</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #c9b7e2; border-bottom: 2px solid #8f6ac3"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Lavande</div>
+          <div class="swatch-hex">#C9B7E2</div>
+          <div class="swatch-use">Décidé à deux · trait #8F6AC3</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #fbe7c4; border-bottom: 1px solid #db900f"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Miel</div>
+          <div class="swatch-hex">#FBE7C4</div>
+          <div class="swatch-use">Libre à deux · trait #DB900F</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #e5a69c; border-bottom: 1px solid #d16251"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Rose dragée</div>
+          <div class="swatch-hex">#E5A69C</div>
+          <div class="swatch-use">Personne 1 · trait #D16251</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #9dc0aa; border-bottom: 1px solid #5c8f6f"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Sauge tendre</div>
+          <div class="swatch-hex">#9DC0AA</div>
+          <div class="swatch-use">Personne 2 · trait #5C8F6F</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #3b3044"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Encre prune</div>
+          <div class="swatch-hex">#3B3044</div>
+          <div class="swatch-use">Texte — 11,3:1</div>
+        </div>
+      </div>
+      <div class="swatch">
+        <div class="swatch-fill" style="background: #746783"></div>
+        <div class="swatch-body">
+          <div class="swatch-name">Encre douce</div>
+          <div class="swatch-hex">#746783</div>
+          <div class="swatch-use">Texte secondaire — 4,8:1</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Dépenses</p>
+    <h2>Huit catégories à clarté rigoureusement égale</h2>
+    <p class="note">
+      Toutes calées sur L* 75, écart maximum 0,3 point. Aucune ne saute aux
+      yeux plus qu'une autre : dans un camembert, c'est la part qui parle,
+      pas la teinte.
+    </p>
+
+    <div class="cats">
+      <div class="cat-bar" aria-hidden="true">
+        <span style="background:#e6aaa1"></span>
+        <span style="background:#e3ae81"></span>
+        <span style="background:#9dbecb"></span>
+        <span style="background:#d5b478"></span>
+        <span style="background:#9ec1ab"></span>
+        <span style="background:#ddacbf"></span>
+        <span style="background:#bbb3df"></span>
+        <span style="background:#bfb8b3"></span>
+      </div>
+
+      <div class="cat-list">
+        <div class="cat"><span class="cat-dot" style="background:#e6aaa1"></span><span class="cat-name">Courses</span><span class="cat-hex">#E6AAA1</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#e3ae81"></span><span class="cat-name">Resto</span><span class="cat-hex">#E3AE81</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#9dbecb"></span><span class="cat-name">Transport</span><span class="cat-hex">#9DBECB</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#d5b478"></span><span class="cat-name">Loisirs</span><span class="cat-hex">#D5B478</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#9ec1ab"></span><span class="cat-name">Logement</span><span class="cat-hex">#9EC1AB</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#ddacbf"></span><span class="cat-name">Santé</span><span class="cat-hex">#DDACBF</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#bbb3df"></span><span class="cat-name">Abonnements</span><span class="cat-hex">#BBB3DF</span></div>
+        <div class="cat"><span class="cat-dot" style="background:#bfb8b3"></span><span class="cat-name">Autre</span><span class="cat-hex">#BFB8B3</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Mode sombre</p>
+    <h2>Mêmes teintes, valeurs inversées</h2>
+    <p class="note">
+      Le fond passe en prune profonde et les aplats s'assombrissent — mais
+      le contour, lui, devient le trait clair. La hiérarchie tient dans les
+      deux sens.
+    </p>
+
+    <div class="night">
+      <div class="night-week">
+        <div class="night-day">
+          <div class="night-stamp">JEU</div>
+          <div class="night-strip">
+            <div class="n-free" style="left:0%;width:9.4%"></div>
+            <div class="n-free" style="left:37.5%;width:6.3%"></div>
+            <div class="n-free" style="left:68.8%;width:31.2%"></div>
+            <div class="night-lanes">
+              <div class="lane"><div class="n-a" style="left:9.4%;width:28.1%"></div></div>
+              <div class="lane">
+                <div class="n-b" style="left:9.4%;width:21.9%"></div>
+                <div class="n-b" style="left:43.8%;width:25%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="night-day">
+          <div class="night-stamp">VEN</div>
+          <div class="night-strip">
+            <div class="n-free" style="left:0%;width:9.4%"></div>
+            <div class="night-lanes">
+              <div class="lane"><div class="n-a" style="left:9.4%;width:59.4%"></div></div>
+              <div class="lane"><div class="n-b" style="left:12.5%;width:50%"></div></div>
+            </div>
+            <div class="n-event" style="left:78.1%;width:15.6%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="night-swatches">
+        <div class="night-sw"><span style="background:#1b1622"></span>#1B1622 &middot; fond</div>
+        <div class="night-sw"><span style="background:#241e2e"></span>#241E2E &middot; cartes</div>
+        <div class="night-sw"><span style="background:#4a3a66;border:2px solid #a78fd6"></span>#4A3A66 &middot; à deux</div>
+        <div class="night-sw"><span style="background:#5e4a26;border:1px solid #b08f4a"></span>#5E4A26 &middot; libre</div>
+        <div class="night-sw"><span style="background:#6e4640;border:1px solid #cd8a80"></span>#6E4640 &middot; personne 1</div>
+        <div class="night-sw"><span style="background:#3f5a48;border:1px solid #85b295"></span>#3F5A48 &middot; personne 2</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">Typographie</p>
+    <h2>Fraunces pour les chiffres, Karla pour le reste</h2>
+
+    <div class="specimen">
+      <div class="spec-row">
+        <div class="spec-meta">Fraunces 600 — titres</div>
+        <div class="spec-display">Votre semaine,<br>à deux.</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-meta">Fraunces 600 — montants et quantièmes</div>
+        <div class="spec-amount">564,29 € &nbsp;·&nbsp; 5 h 30 libres</div>
+      </div>
+      <div class="spec-row">
+        <div class="spec-meta">Karla 400 — texte courant</div>
+        <div class="spec-body">
+          Un agenda commun, vos dispos côte à côte, et les dépenses qui vont
+          avec. On ne lit que les horaires occupés, jamais le contenu des
+          événements.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <p class="eyebrow">À ne pas défaire</p>
+    <h2>Une règle</h2>
+
+    <div class="rule-card">
+      <div class="rule-title">Un aplat pastel porte du texte foncé</div>
+      <div class="rule-body">
+        Passer les blocs en lavande a rendu invisible chaque texte blanc
+        posé dessus. Le token <strong>--on-strong</strong> existe pour ça :
+        toute nouvelle carte lavande prend <strong>color: var(--on-strong)</strong>,
+        jamais <strong>var(--surface)</strong>.
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    Contrastes mesurés selon WCAG 2.1, clartés en L* CIE.
+    Les valeurs font foi dans <strong>app/globals.css</strong> ;
+    celles stockées en base sont dans <strong>lib/palette.ts</strong>.
+  </footer>
+
+</div>

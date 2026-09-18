@@ -1,0 +1,55 @@
+/* La mini-timeline d'une journée : le motif qui revient sur l'accueil et
+   la vue semaine. Fond honey = libre à deux, deux rubans fins, bloc plein
+   pour un événement commun. */
+
+.strip {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* Sur l'accueil la bande est posée sur le fond crème, sans contour. */
+.stripBare {
+  background: var(--ground);
+  border: 0;
+  border-radius: 9px;
+}
+
+.free {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--honey);
+  border-radius: 7px;
+}
+
+/* L'écart vertical entre les deux voies vient d'ici, leur distance au
+   bord de la bande de la prop `inset`. */
+.lanes {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.lane {
+  position: relative;
+  flex-grow: 1;
+}
+
+.ribbon {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 4px;
+}
+
+.event {
+  position: absolute;
+  background: var(--ink-strong);
+  border-radius: 6px;
+}

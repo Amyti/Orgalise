@@ -1,0 +1,251 @@
+/* Écran de connexion — dimensions relevées sur design/Connexion.dc.html
+   (base mobile 390 × 844). Les couleurs passent toutes par les tokens. */
+
+.screen {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  color: var(--ink);
+}
+
+/* --- Bandeau de marque ------------------------------------------------ */
+
+.brand {
+  padding-top: calc(72px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+}
+
+.dot {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 2px solid var(--ground);
+}
+
+.dotA {
+  background: var(--user-a);
+  box-shadow: inset 0 0 0 1.5px var(--user-a-line);
+}
+
+.dotB {
+  background: var(--user-b);
+  box-shadow: inset 0 0 0 1.5px var(--user-b-line);
+  margin-left: -10px;
+}
+
+.appName {
+  font-size: 13px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+/* --- Accroche --------------------------------------------------------- */
+
+.intro {
+  padding-top: 52px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.12;
+  margin: 0;
+}
+
+.subtitle {
+  font-size: 14.5px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 12px 0 0;
+}
+
+/* --- Champs ----------------------------------------------------------- */
+
+.fields {
+  padding-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 11px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.input {
+  height: 52px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 15px;
+  color: var(--ink);
+  appearance: none;
+}
+
+.input::placeholder {
+  color: var(--ink-soft);
+  opacity: 0.55;
+}
+
+.input:focus-visible {
+  border-color: var(--ink);
+  outline-offset: 1px;
+}
+
+.inputInvalid {
+  border-color: var(--accent-ink);
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--ink-soft);
+}
+
+/* --- Messages (erreur, lien envoyé, config manquante) ------------------ */
+
+.message {
+  margin-top: 16px;
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.messageError {
+  background: var(--surface);
+  border: 1px solid var(--accent-ink);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+
+.messageSent {
+  background: var(--honey);
+  color: var(--honey-ink);
+  font-weight: 600;
+}
+
+.messageSetup {
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  color: var(--ink-soft);
+}
+
+.messageSetup code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  color: var(--ink);
+}
+
+/* --- Boutons ---------------------------------------------------------- */
+
+.primaryWrap {
+  padding-top: 20px;
+}
+
+.primary {
+  width: 100%;
+  height: 54px;
+  border-radius: 27px;
+  background: var(--ink-strong);
+  color: var(--on-strong);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.divider {
+  padding-top: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.line {
+  flex-grow: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.or {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+.alternatives {
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.secondary {
+  width: 100%;
+  height: 52px;
+  border: 1px solid var(--border-strong);
+  border-radius: 26px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* --- Pied d'écran ----------------------------------------------------- */
+
+.spacer {
+  flex-grow: 1;
+  min-height: 24px;
+}
+
+.footer {
+  padding-bottom: calc(36px + env(safe-area-inset-bottom));
+  text-align: center;
+  font-size: 13.5px;
+  color: var(--ink-soft);
+}
+
+/* Padding vertical + marge négative : cible tactile de 44 px sans
+   décaler la ligne de texte. */
+.footerAction {
+  display: inline-block;
+  border: 0;
+  background: none;
+  padding: 13px 8px;
+  margin: -13px 0;
+  font-size: inherit;
+  font-weight: 700;
+  color: var(--accent-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

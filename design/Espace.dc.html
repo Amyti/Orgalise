@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&amp;family=Karla:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; font-family: 'Karla', 'Helvetica Neue', sans-serif; background: #F5F1E8; }
+    a { color: #1F1C18; text-decoration: none; }
+    a:hover { color: #A94F2E; }
+  </style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #F5F1E8; color: #1F1C18; position: relative; overflow: hidden; display: flex; flex-direction: column; padding: 0 24px;">
+
+  <div style="padding-top: 26px; display: flex; align-items: center; justify-content: space-between;">
+    <a href="Groupe.dc.html" aria-label="Retour" style="width: 44px; height: 44px; margin-left: -12px; display: flex; align-items: center; justify-content: center;">
+      <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#1F1C18" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"></path></svg>
+    </a>
+    <div style="font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #6B6358;">Étape 2 sur 2</div>
+  </div>
+
+  <div style="padding-top: 10px;">
+    <div style="font-family: 'Fraunces', Georgia, serif; font-size: 32px; font-weight: 600; line-height: 1.15;">Nous deux</div>
+    <div style="font-size: 14px; color: #6B6358; margin-top: 7px;">Espace créé. Il manque encore quelqu'un.</div>
+  </div>
+
+  <div style="margin-top: 22px; background: #F6E2B2; border: 1px solid #E8D29A; border-radius: 18px; padding: 20px; display: flex; flex-direction: column; gap: 15px;">
+    <div style="font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #6B5312;">Code d'invitation</div>
+    <div style="display: flex; gap: 8px;">
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">K</div>
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">7</div>
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">M</div>
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">4</div>
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">R</div>
+      <div style="flex-grow: 1; height: 58px; background: #FFFDF8; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: 'Fraunces', Georgia, serif; font-size: 26px; font-weight: 700;">9</div>
+    </div>
+    <button type="button" style="height: 50px; border-radius: 25px; border: none; background: #221F1A; color: #FFFDF8; font-size: 14.5px; font-weight: 700; font-family: 'Karla', sans-serif; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M12 4L7 9M12 4l5 5"></path><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"></path></svg>
+      Envoyer le code
+    </button>
+  </div>
+
+  <div style="margin-top: 22px;">
+    <div style="font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #6B6358; margin-bottom: 10px;">Membres</div>
+    <div style="background: #FFFDF8; border: 1px solid #E7E0D0; border-radius: 15px; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 13px 15px; border-bottom: 1px solid #EFE8D9;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; background: {{moi}}; color: #FFFDF8; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; flex-shrink: 0;">T</div>
+        <div style="flex-grow: 1; min-width: 0;">
+          <div style="font-size: 14.5px; font-weight: 700;">Toi</div>
+          <div style="font-size: 11.5px; color: #6B6358;">Créateur de l'espace</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6549" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 13px 15px;">
+        <div style="width: 36px; height: 36px; border-radius: 50%; border: 1.5px dashed #C4BBA8; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#9A9183" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"></path></svg>
+        </div>
+        <div style="flex-grow: 1; min-width: 0;">
+          <div style="font-size: 14.5px; font-weight: 700; color: #6B6358;">En attente</div>
+          <div style="font-size: 11.5px; color: #6B6358;">Elle rejoindra avec le code</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top: 20px;">
+    <div style="font-size: 11px; letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; color: #6B6358; margin-bottom: 10px;">Vos calendriers perso</div>
+    <div style="background: #FFFDF8; border: 1px solid #E7E0D0; border-radius: 15px; overflow: hidden;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 13px 15px; border-bottom: 1px solid #EFE8D9;">
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: {{moi}}; flex-shrink: 0;"></span>
+        <div style="flex-grow: 1; min-width: 0;">
+          <div style="font-size: 14px; font-weight: 600;">Ton calendrier</div>
+          <div style="font-size: 11.5px; color: #6B6358;">Lien iCal · synchronisé</div>
+        </div>
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#4F6549" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 13px 15px;">
+        <span style="width: 9px; height: 9px; border-radius: 50%; background: #D8D0BF; flex-shrink: 0;"></span>
+        <div style="flex-grow: 1; min-width: 0;">
+          <div style="font-size: 14px; font-weight: 600; color: #6B6358;">Le sien</div>
+          <div style="font-size: 11.5px; color: #6B6358;">À ajouter après son arrivée</div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size: 11.5px; color: #6B6358; line-height: 1.45; margin-top: 9px;">On ne lit que les horaires occupés, jamais le contenu des événements.</div>
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <div style="padding-bottom: 32px;">
+    <a href="Accueil.dc.html" style="height: 54px; border-radius: 27px; background: #1F1C18; color: #FFFDF8; display: flex; align-items: center; justify-content: center; font-size: 15px; font-weight: 700;">Entrer dans l'espace</a>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"moi":{"editor":"color","default":"#A94F2E","options":["#A94F2E","#8A5A2B","#9B4B62","#3F6B70"]},"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return { moi: this.props.moi || '#A94F2E' };
+  }
+}
+</script>
+</body>
+</html>

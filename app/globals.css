@@ -1,0 +1,430 @@
+:root {
+  /* --- Design system — charte d'origine ------------------------------
+     Crème chaud, terracotta, olive, honey. Celle décrite dans CLAUDE.md
+     dès le premier jour.
+
+     La hiérarchie tient sur la VALEUR, pas sur des contours : le honey
+     est le plus clair (temps libre), les rubans au milieu, le bloc
+     ink-strong quasi noir (ce qui est décidé à deux). C'est ce contraste
+     qui fait ressortir un week-end libre sur une semaine chargée. */
+  --ground: #f5f1e8;
+  --surface: #fffdf8;
+  --ink: #1f1c18;
+  --ink-strong: #221f1a;
+  --ink-soft: #6b6358;
+  --border: #e7e0d0;
+  --honey: #f6e2b2;
+  --honey-ink: #6b5312;
+  --user-a: #a94f2e;
+  --user-b: #4f6549;
+  --on-strong: #fffdf8;
+  --on-user: #fffdf8;
+  --border-strong: #d8d0bf;
+  --rule: #e2dacb;
+  --separator: #efe8d9;
+  --honey-border: #e8d29a;
+  --honey-deep: #896912;
+  --free-dot: #c9a227;
+  --sunken: #f0ece1;
+  --track: #eae3d4;
+  --track-out: #cfc7b6;
+  --muted: #71695d;
+  --placeholder: #8d8475;
+  --dashed: #c4bba8;
+  --table-head: #f0eadc;
+  --table-group: #faf6ec;
+  --table-row: #f2ecdf;
+  --strong-field: #2c2822;
+  --strong-border: #3c3831;
+  --strong-track: #3a352e;
+  --key-back: #ede6d7;
+  --over: #e9a08a;
+  --honey-line: #e8d29a;
+  --user-a-line: #a94f2e;
+  --user-b-line: #4f6549;
+  --strong-line: #221f1a;
+  --accent-ink: #a94f2e;
+  --over-ink: #a3402c;
+  --danger-strong: #f6b8a8;
+  --line-into: #1f1c18;
+  --fill-into: #ffffff;
+  --shadow: rgba(31, 28, 24, 0.24);
+  --line-amount: 62%;
+  --fill-amount: 100%;
+  --cat-courses: #a94f2e;
+  --cat-resto: #c4703f;
+  --cat-transport: #3f6b70;
+  --cat-loisirs: #8a5a2b;
+  --cat-logement: #4f6549;
+  --cat-sante: #9b4b62;
+  --cat-abonnements: #6b5a8a;
+  --cat-autre: #7a7263;
+  color-scheme: light;
+
+  --r-sm: 11px;
+  --r-md: 12px;
+  --r-lg: 18px;
+  --r-pill: 999px;
+  --tap: 44px;
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-text: var(--font-karla), 'Helvetica Neue', sans-serif;
+}
+
+/* ---------------------------------------------------------------------
+   Mode sombre — la même charte, en valeurs inversées.
+   Trois états : un choix explicite pose `data-theme`, le réglage
+   « système » ne pose rien.
+   --------------------------------------------------------------------- */
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ground: #191712;
+    --surface: #221f19;
+    --ink: #f2ede2;
+    --ink-strong: #3b352b;
+    --ink-soft: #a89e8c;
+    --border: #322d24;
+    --honey: #514120;
+    --honey-ink: #f5e2b4;
+    --user-a: #c66a45;
+    --user-b: #6f8d67;
+    --on-strong: #f2ede2;
+    --on-user: #1f1c18;
+    --border-strong: #463f33;
+    --rule: #2d2921;
+    --separator: #292419;
+    --honey-border: #8a7238;
+    --honey-deep: #e8c87e;
+    --free-dot: #d4b555;
+    --sunken: #1e1b15;
+    --track: #2d2921;
+    --track-out: #4a4335;
+    --muted: #8e8574;
+    --placeholder: #8e8574;
+    --dashed: #4f4839;
+    --table-head: #282318;
+    --table-group: #1f1c15;
+    --table-row: #2b261c;
+    --strong-field: #2e291f;
+    --strong-border: #453e31;
+    --strong-track: #2a251c;
+    --key-back: #2d2820;
+    --over: #e0947e;
+    --honey-line: #8a7238;
+    --user-a-line: #c66a45;
+    --user-b-line: #6f8d67;
+    --strong-line: #3b352b;
+    --accent-ink: #e08a63;
+    --over-ink: #e0947e;
+    --danger-strong: #e0947e;
+    --line-into: #f2ede2;
+    --fill-into: #191712;
+    --shadow: rgba(31, 28, 24, 0.5);
+    --line-amount: 70%;
+    --fill-amount: 55%;
+    --cat-courses: #c46a45;
+    --cat-resto: #d1845a;
+    --cat-transport: #5a8b91;
+    --cat-loisirs: #a8773e;
+    --cat-logement: #6f8d67;
+    --cat-sante: #b96a81;
+    --cat-abonnements: #8a79a8;
+    --cat-autre: #9a9182;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme='dark'] {
+  --ground: #191712;
+  --surface: #221f19;
+  --ink: #f2ede2;
+  --ink-strong: #3b352b;
+  --ink-soft: #a89e8c;
+  --border: #322d24;
+  --honey: #514120;
+  --honey-ink: #f5e2b4;
+  --user-a: #c66a45;
+  --user-b: #6f8d67;
+  --on-strong: #f2ede2;
+  --on-user: #1f1c18;
+  --border-strong: #463f33;
+  --rule: #2d2921;
+  --separator: #292419;
+  --honey-border: #8a7238;
+  --honey-deep: #e8c87e;
+  --free-dot: #d4b555;
+  --sunken: #1e1b15;
+  --track: #2d2921;
+  --track-out: #4a4335;
+  --muted: #8e8574;
+  --placeholder: #8e8574;
+  --dashed: #4f4839;
+  --table-head: #282318;
+  --table-group: #1f1c15;
+  --table-row: #2b261c;
+  --strong-field: #2e291f;
+  --strong-border: #453e31;
+  --strong-track: #2a251c;
+  --key-back: #2d2820;
+  --over: #e0947e;
+  --honey-line: #8a7238;
+  --user-a-line: #c66a45;
+  --user-b-line: #6f8d67;
+  --strong-line: #3b352b;
+  --accent-ink: #e08a63;
+  --over-ink: #e0947e;
+  --danger-strong: #e0947e;
+  --line-into: #f2ede2;
+  --fill-into: #191712;
+  --shadow: rgba(31, 28, 24, 0.5);
+  --line-amount: 70%;
+  --fill-amount: 55%;
+  --cat-courses: #c46a45;
+  --cat-resto: #d1845a;
+  --cat-transport: #5a8b91;
+  --cat-loisirs: #a8773e;
+  --cat-logement: #6f8d67;
+  --cat-sante: #b96a81;
+  --cat-abonnements: #8a79a8;
+  --cat-autre: #9a9182;
+  color-scheme: dark;
+}
+
+/* ---------------------------------------------------------------------
+   Reset minimal
+   --------------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--font-text);
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+  /* Safe areas iOS : la PWA tourne en plein écran une fois installée. */
+  min-height: 100dvh;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--accent-ink);
+}
+
+/* Focus visible sobre, dans la palette — pas d'anneau bleu système. */
+:focus-visible {
+  outline: 2px solid var(--accent-ink);
+  outline-offset: 2px;
+}
+
+/* Masquage accessible (texte lu par les lecteurs d'écran uniquement) */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------------------------------------------------------------------
+   Primitives partagées
+   Les mêmes formes reviennent sur les 10 écrans : autant les définir une
+   fois. Ce qui est propre à un écran reste dans son module CSS.
+   --------------------------------------------------------------------- */
+
+/* Le cadre mobile. Les maquettes sont dessinées en 390 px, mais le
+   plafond est à 440 px : c'est la largeur de l'iPhone 16 Pro Max. Caler
+   à 390 laisserait 20 px de vide mort de chaque côté sur un 15 Pro Max
+   (430 px). Sur un écran large, ça reste une colonne de téléphone. */
+.screen {
+  width: 100%;
+  max-width: 440px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  position: relative;
+}
+
+/* Surtitre en capitales, au-dessus des grands titres. */
+.eyebrow {
+  font-size: 11px;
+  letter-spacing: 1.6px;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* Intitulé de section. */
+.sectionTitle {
+  font-size: 11px;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 600;
+  margin: 0;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+/* Carte sombre : « prochain truc à deux », total du budget… */
+.cardDark {
+  background: var(--ink-strong);
+  color: var(--on-strong);
+  border-radius: var(--r-lg);
+}
+
+/* Liste encartée dont les lignes sont séparées par un filet. */
+.list {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.list > * + * {
+  border-top: 1px solid var(--separator);
+}
+
+.btnPrimary {
+  height: 54px;
+  border-radius: 27px;
+  background: var(--ink-strong);
+  color: var(--on-strong);
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btnSecondary {
+  height: 52px;
+  border: 1px solid var(--border-strong);
+  border-radius: 26px;
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.btnPrimary:disabled,
+.btnSecondary:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* Bouton carré d'en-tête : mois précédent / suivant. */
+.btnIcon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Zone tactile d'une flèche de retour, alignée sur le bord du contenu. */
+.backLink {
+  width: var(--tap);
+  height: var(--tap);
+  margin-left: -12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  color: var(--on-user);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  border: 2px solid var(--ground);
+  flex-shrink: 0;
+}
+
+/* États que les maquettes ne montrent pas : vide, chargement, erreur. */
+.empty {
+  padding: 22px 18px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.errorBox {
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  border: 1px solid var(--accent-ink);
+  color: var(--accent-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.noticeBox {
+  padding: 11px 13px;
+  border-radius: var(--r-sm);
+  background: var(--honey);
+  color: var(--honey-ink);
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.45;
+}

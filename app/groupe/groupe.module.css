@@ -1,0 +1,263 @@
+/* Écran « Votre espace commun » — d'après design/Groupe.dc.html. */
+
+.screen {
+  padding: 0 24px;
+}
+
+.header {
+  padding-top: calc(26px + env(safe-area-inset-top));
+}
+
+.intro {
+  padding-top: 8px;
+}
+
+.title {
+  font-size: 32px;
+  line-height: 1.15;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+  margin: 9px 0 0;
+}
+
+/* --- Carte sombre : créer l'espace ------------------------------------ */
+
+.createCard {
+  margin-top: 26px;
+  background: var(--ink-strong);
+  color: var(--on-strong);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.createHead {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.createBadge {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--honey);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.createTitle {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+}
+
+.createHint {
+  font-size: 12.5px;
+  opacity: 0.72;
+  line-height: 1.45;
+  margin: 8px 0 0;
+}
+
+.darkField {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.darkLabel {
+  font-size: 10.5px;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  opacity: 0.72;
+}
+
+.darkInput {
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid var(--strong-border);
+  border-radius: var(--r-sm);
+  background: var(--strong-field);
+  font-size: 15px;
+  color: var(--on-strong);
+  appearance: none;
+}
+
+.darkInput:focus-visible {
+  border-color: var(--honey-ink);
+  outline-color: var(--honey-ink);
+}
+
+.honeyButton {
+  height: 50px;
+  border: 1px solid var(--honey-line);
+  border-radius: 25px;
+  background: var(--honey);
+  color: var(--honey-ink);
+  font-size: 14.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.honeyButton:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+/* --- Séparateur ------------------------------------------------------- */
+
+.divider {
+  padding-top: 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.line {
+  flex-grow: 1;
+  height: 1px;
+  background: var(--rule);
+}
+
+.or {
+  font-size: 11px;
+  color: var(--ink-soft);
+  font-weight: 600;
+}
+
+/* --- Carte claire : rejoindre ----------------------------------------- */
+
+.joinCard {
+  margin-top: 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.joinTitle {
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.joinHint {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  line-height: 1.45;
+  margin: 6px 0 0;
+}
+
+/* Six cases qui ne sont qu'un décor : la saisie se fait dans un seul
+   champ transparent posé par-dessus, pour que le clavier, le collage et
+   la correction automatique se comportent normalement. */
+.codeWrap {
+  position: relative;
+}
+
+.codeBoxes {
+  display: flex;
+  gap: 7px;
+  pointer-events: none;
+}
+
+.codeBox {
+  flex-grow: 1;
+  height: 54px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display);
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.codeBoxFilled {
+  border-color: var(--border-strong);
+  background: var(--ground);
+}
+
+.codeBoxActive {
+  border: 1.5px solid var(--ink);
+  background: var(--surface);
+}
+
+.caret {
+  width: 1.5px;
+  height: 22px;
+  background: var(--user-a);
+}
+
+.codeInput {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  border: 0;
+  background: transparent;
+  font-size: 22px;
+  letter-spacing: 1em;
+  text-transform: uppercase;
+}
+
+.codeWrap:focus-within .codeBoxActive {
+  border-color: var(--accent-ink);
+}
+
+.outlineButton {
+  height: 50px;
+  border: 1px solid var(--ink);
+  border-radius: 25px;
+  background: transparent;
+  color: var(--ink);
+  font-size: 14.5px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.outlineButton:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* --- Pied ------------------------------------------------------------- */
+
+.spacer {
+  flex-grow: 1;
+  min-height: 20px;
+}
+
+.foot {
+  padding-bottom: calc(32px + env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.4;
+}
+
+.message {
+  margin-top: 14px;
+}

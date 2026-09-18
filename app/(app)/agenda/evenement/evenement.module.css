@@ -1,0 +1,173 @@
+/* Saisie d'un événement commun. Pas de maquette de référence : la coque
+   reprend celle de design/Ajout.dc.html (croix, titre centré, bouton en
+   bas) pour que les deux écrans de saisie se ressemblent. */
+
+.screen {
+  padding: 0 20px;
+}
+
+.bar {
+  padding-top: calc(22px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.barTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.barSpacer {
+  width: var(--tap);
+  flex-shrink: 0;
+}
+
+.form {
+  padding-top: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font-size: 10.5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+}
+
+.input {
+  height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 15px;
+  color: var(--ink);
+  width: 100%;
+  appearance: none;
+}
+
+.inputTitle {
+  font-weight: 600;
+}
+
+.textarea {
+  min-height: 84px;
+  padding: 13px 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 14.5px;
+  color: var(--ink);
+  width: 100%;
+  resize: vertical;
+  line-height: 1.45;
+}
+
+.select {
+  height: 50px;
+  padding: 0 40px 0 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 15px;
+  color: var(--ink);
+  width: 100%;
+  appearance: none;
+  /* Chevron dessiné en CSS : pas d'image externe, pas de dégradé. */
+  background-image: linear-gradient(45deg, transparent 50%, var(--ink-soft) 50%),
+    linear-gradient(135deg, var(--ink-soft) 50%, transparent 50%);
+  background-position: calc(100% - 20px) 22px, calc(100% - 15px) 22px;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+.pair {
+  display: flex;
+  gap: 8px;
+}
+
+.pair > * {
+  flex-grow: 1;
+  flex-basis: 0;
+  min-width: 0;
+}
+
+/* Interrupteur « toute la journée » : une vraie case à cocher, agrandie
+   à 44 px de zone tactile par le label qui l'entoure. */
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--tap);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.checkBox {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--surface);
+  appearance: none;
+  flex-shrink: 0;
+  display: grid;
+  place-content: center;
+}
+
+.checkBox:checked {
+  background: var(--ink-strong);
+}
+
+.checkBox:checked::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2.5px solid var(--on-strong);
+  border-bottom: 2.5px solid var(--on-strong);
+  transform: rotate(-45deg) translate(1px, -1px);
+}
+
+.spacer {
+  flex-grow: 1;
+  min-height: 20px;
+}
+
+.foot {
+  padding: 18px 0 calc(26px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.danger {
+  height: 48px;
+  border: 1px solid var(--border-strong);
+  border-radius: 24px;
+  background: transparent;
+  color: var(--accent-ink);
+  font-size: 13.5px;
+  font-weight: 700;
+  width: 100%;
+}
+
+.dangerRow {
+  display: flex;
+  gap: 8px;
+}
+
+.dangerRow > form {
+  flex-grow: 1;
+  flex-basis: 0;
+}

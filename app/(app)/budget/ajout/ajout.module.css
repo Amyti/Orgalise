@@ -1,0 +1,180 @@
+/* Saisie d'une dépense — d'après design/Ajout.dc.html. */
+
+.screen {
+  padding: 0 20px;
+}
+
+.bar {
+  padding-top: calc(22px + env(safe-area-inset-top));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.barTitle {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.barSpacer {
+  width: var(--tap);
+  flex-shrink: 0;
+}
+
+.amountZone {
+  padding-top: 22px;
+  text-align: center;
+}
+
+.amount {
+  font-family: var(--font-display);
+  font-size: 52px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: -1px;
+}
+
+.currency {
+  color: var(--muted);
+}
+
+.dateChip {
+  margin-top: 10px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  position: relative;
+}
+
+/* Le vrai champ date, invisible, posé sur la pastille : on garde le
+   sélecteur natif du téléphone sans en casser l'apparence. */
+.dateInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: transparent;
+}
+
+.field {
+  padding-top: 20px;
+}
+
+.label {
+  font-size: 10.5px;
+  letter-spacing: 1.3px;
+  text-transform: uppercase;
+  font-weight: 700;
+  color: var(--ink-soft);
+  display: block;
+  margin-bottom: 6px;
+}
+
+.input {
+  width: 100%;
+  height: 50px;
+  padding: 0 15px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  appearance: none;
+}
+
+.cats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.cat {
+  box-sizing: border-box;
+  height: 62px;
+  border-radius: 13px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 2px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.catOn {
+  background: var(--ink-strong);
+  border: 1.5px solid var(--ink-strong);
+}
+
+.catChip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.catLabel {
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.1;
+  text-align: center;
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.catLabelOn {
+  color: var(--on-strong);
+}
+
+.spacer {
+  flex-grow: 1;
+  min-height: 12px;
+}
+
+.keys {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.key {
+  height: 50px;
+  border-radius: 13px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-family: var(--font-display);
+  font-size: 21px;
+  font-weight: 600;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.keyBack {
+  background: var(--key-back);
+}
+
+.foot {
+  padding-bottom: calc(26px + env(safe-area-inset-bottom));
+}
+
+.message {
+  margin-bottom: 10px;
+}
