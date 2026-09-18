@@ -1,8 +1,10 @@
 import { cache } from 'react'
+import { headers } from 'next/headers'
 import { redirect } from 'next/navigation'
 
 import { LOGIN_PATH } from './config'
 import { USER_A, USER_B } from './palette'
+import { USER_HEADER } from './supabase/session'
 import { createClient } from './supabase/server'
 import type { Member, Space } from './types'
 
@@ -13,6 +15,22 @@ import type { Member, Space } from './types'
  * on prend le premier — et le seul. `cache()` évite de refaire la
  * requête pour chaque composant du même rendu.
  */
+
+/**
+ * Identifiant de la personne connectée, sans aller-retour réseau.
+ *
+ * Le proxy vient de vérifier le jeton pour cette requête et pose le
+ * résultat en en-tête ; le relire coûte zéro. On retombe sur `getUser()`
+ * là où le proxy ne passe pas — une route hors de son filtre, ou
+ * l'environnement sans Supabase configuré.
+ */
+export const currentUserId = cache(async (): Promise<string | null> => {
+  const fromProxy = (await headers()).get(USER_HEADER)
+  if (fromProxy) return fromProxy
+
+  const user = await currentUser()
+  return user?.id ?? null
+})
 
 export const currentUser = cache(async () => {
   const supabase = await createClient()
@@ -29,8 +47,8 @@ export async function requireUser() {
 }
 
 export const currentSpace = cache(async (): Promise<Space | null> => {
-  const user = await currentUser()
-  if (!user) return null
+  const userId = await currentUserId()
+  if (!userId) return null
 
   const supabase = await createClient()
 
@@ -78,21 +96,22 @@ export const currentSpace = cache(async (): Promise<Space | null> => {
     ]
   })
 
-  const me = people.find((p) => p.id === user.id)
+  const me = people.find((p) => p.id === userId)
   if (!me) return null
 
   return {
     group,
     me,
-    partner: people.find((p) => p.id !== user.id) ?? null,
+    partner: people.find((p) => p.id !== userId) ?? null,
   }
 })
 
 /** Pour les écrans internes : sans espace, on renvoie au parcours d'entrée. */
 export async function requireSpace(): Promise<Space> {
-  await requireUser()
+  // Pas de `requireUser()` ici : il déclencherait un `getUser()` réseau
+  // alors que `currentSpace` sait déjà répondre à partir de l'en-tête.
   const space = await currentSpace()
-  if (!space) redirect('/groupe')
+  if (!space) redirect((await currentUserId()) ? '/groupe' : LOGIN_PATH)
   return space
 }
 
