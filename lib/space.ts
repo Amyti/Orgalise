@@ -34,40 +34,27 @@ export const currentSpace = cache(async (): Promise<Space | null> => {
 
   const supabase = await createClient()
 
-  const { data: membership } = await supabase
-    .from('group_members')
-    .select('group_id')
-    .eq('user_id', user.id)
-    .order('joined_at', { ascending: true })
-    .limit(1)
-    .maybeSingle()
+  // Trois requêtes en UNE vague au lieu de trois à la suite.
+  //
+  // C'est RLS qui le permet : `groups` n'est visible que via
+  // `is_group_member`, `group_members` que pour son propre espace, et
+  // `profiles` que pour soi et ses co-membres. Sans filtre, chacune ne
+  // renvoie donc que ce qui nous concerne — et aucune n'a besoin du
+  // résultat des autres. Deux utilisateurs, un espace : le volume rend
+  // l'absence de filtre sans conséquence (CLAUDE.md : ne pas
+  // sur-architecturer pour le multi-tenant).
+  const [{ data: groups }, { data: members }, { data: profiles }] =
+    await Promise.all([
+      supabase.from('groups').select('id, name, invite_code, created_by').limit(1),
+      supabase
+        .from('group_members')
+        .select('user_id, role, joined_at')
+        .order('joined_at', { ascending: true }),
+      supabase.from('profiles').select('id, display_name, color'),
+    ])
 
-  if (!membership) return null
-
-  const [{ data: group }, { data: members }] = await Promise.all([
-    supabase
-      .from('groups')
-      .select('id, name, invite_code, created_by')
-      .eq('id', membership.group_id)
-      .maybeSingle(),
-    supabase
-      .from('group_members')
-      .select('user_id, role, joined_at')
-      .eq('group_id', membership.group_id)
-      .order('joined_at', { ascending: true }),
-  ])
-
+  const group = groups?.[0]
   if (!group) return null
-
-  // Deux requêtes plutôt qu'une jointure : `group_members.user_id` et
-  // `profiles.id` pointent tous deux vers `auth.users`, sans clé étrangère
-  // entre eux. PostgREST ne sait donc pas imbriquer les deux tables, et
-  // `select('…, profiles(…)')` échoue en PGRST200. Deux lignes au maximum,
-  // le coût est nul.
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('id, display_name, color')
-    .in('id', (members ?? []).map((m) => m.user_id))
 
   const byId = new Map((profiles ?? []).map((p) => [p.id, p]))
 
