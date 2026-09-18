@@ -17,6 +17,7 @@ import { euros, parseCents } from '../lib/money'
 import { expand } from '../lib/recurrence'
 import { busyBlocks } from '../lib/ics'
 import { computeBand, bandTicks, bandHours, splitDays, WEEK_BAND } from '../lib/agenda'
+import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
 
@@ -239,6 +240,46 @@ check('4 repères sur 7 h – 23 h', bandTicks({ from: 7, to: 23 }, 4), [7, 12, 
 check('4 repères sur une bande étendue', bandTicks({ from: 5, to: 24 }, 4), [5, 11, 18, 24])
 check('heures pleines, pas de 2', bandHours({ from: 5, to: 13 }, 2), [5, 7, 9, 11, 13])
 check('bande à bornes décimales', bandHours({ from: 5.5, to: 12 }, 2), [6, 8, 10, 12])
+
+console.log('\n— Lecture locale du jeton de session —')
+const b64url = (o: unknown) =>
+  Buffer.from(JSON.stringify(o)).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+const jwt = (claims: object) => `${b64url({ alg: 'HS256' })}.${b64url(claims)}.signature`
+const cookie = (session: object) =>
+  'base64-' + Buffer.from(JSON.stringify(session)).toString('base64')
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '')
+
+const SUB = '11111111-2222-3333-4444-555555555555'
+const dans1h = Math.floor(Date.now() / 1000) + 3600
+const session = { access_token: jwt({ sub: SUB, exp: dans1h }), token_type: 'bearer' }
+const valeur = cookie(session)
+
+check('cookie entier', readTokenClaims([{ name: 'sb-abc-auth-token', value: valeur }])?.sub, SUB)
+// @supabase/ssr découpe les gros cookies ; l'ordre n'est pas garanti.
+const moitie = Math.ceil(valeur.length / 2)
+check('cookie découpé, dans le désordre', readTokenClaims([
+  { name: 'sb-abc-auth-token.1', value: valeur.slice(moitie) },
+  { name: 'sb-abc-auth-token.0', value: valeur.slice(0, moitie) },
+])?.sub, SUB)
+// Un morceau manquant donnerait du JSON tronqué : mieux vaut abandonner.
+check('morceau manquant → abandon', readTokenClaims([
+  { name: 'sb-abc-auth-token.0', value: valeur.slice(0, moitie) },
+  { name: 'sb-abc-auth-token.2', value: valeur.slice(moitie) },
+]), null)
+check('aucun cookie', readTokenClaims([]), null)
+check('cookie étranger ignoré', readTokenClaims([{ name: 'autre', value: valeur }]), null)
+check('valeur illisible → abandon', readTokenClaims([
+  { name: 'sb-abc-auth-token', value: 'base64-pasdubase64!!' }]), null)
+check('JSON sans access_token → abandon', readTokenClaims([
+  { name: 'sb-abc-auth-token', value: cookie({ autre: 1 }) }]), null)
+check('JWT sans sub → abandon', readTokenClaims([
+  { name: 'sb-abc-auth-token', value: cookie({ access_token: jwt({ exp: dans1h }) }) }]), null)
+
+// La fraîcheur décide si l'on peut éviter l'appel réseau.
+check('jeton d’une heure : frais', isFresh({ sub: SUB, exp: dans1h }), true)
+check('expire dans 30 s : pas frais', isFresh({ sub: SUB, exp: Math.floor(Date.now()/1000) + 30 }), false)
+check('déjà expiré : pas frais', isFresh({ sub: SUB, exp: Math.floor(Date.now()/1000) - 10 }), false)
 
 console.log(`\n${failures === 0 ? '✓ tout passe' : `✗ ${failures} échec(s)`}\n`)
 process.exit(failures === 0 ? 0 : 1)
