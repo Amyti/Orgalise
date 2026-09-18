@@ -32,12 +32,23 @@ export async function GET(request: NextRequest) {
 
   const supabase = await createClient()
 
+  /*
+   * Une confirmation d'inscription ne mène pas dans l'app.
+   *
+   * Sur iPhone, ce lien s'ouvre dans Safari, jamais dans la PWA de
+   * l'écran d'accueil — et les deux ne partagent pas leurs cookies. La
+   * session créée ici ne suivra donc pas. Mieux vaut une page qui le dit
+   * qu'un accueil trompeur suivi d'une déconnexion incompréhensible.
+   */
+  const confirmation = type === 'signup' || type === 'email'
+  const arrivee = confirmation ? '/auth/confirme' : next
+
   if (code) {
     const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) return NextResponse.redirect(`${origin}${next}`)
+    if (!error) return NextResponse.redirect(`${origin}${arrivee}`)
   } else if (tokenHash && type) {
     const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type })
-    if (!error) return NextResponse.redirect(`${origin}${next}`)
+    if (!error) return NextResponse.redirect(`${origin}${arrivee}`)
   }
 
   return NextResponse.redirect(`${origin}${LOGIN_PATH}?erreur=lien`)

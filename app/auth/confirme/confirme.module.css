@@ -1,0 +1,55 @@
+/* Page d'arrivée après confirmation d'e-mail. */
+
+.screen {
+  padding: 0 28px;
+}
+
+.center {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 16px;
+  padding: 48px 0;
+}
+
+.badge {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--ink-strong);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 30px;
+  line-height: 1.15;
+  margin: 0;
+}
+
+.body {
+  font-size: 15px;
+  color: var(--ink-soft);
+  line-height: 1.55;
+  max-width: 34ch;
+  margin: 0;
+}
+
+.tip {
+  background: var(--honey);
+  color: var(--honey-ink);
+  border-radius: var(--r-md);
+  padding: 13px 15px;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 600;
+  max-width: 36ch;
+}
+
+.foot {
+  padding-bottom: calc(36px + env(safe-area-inset-bottom));
+}
