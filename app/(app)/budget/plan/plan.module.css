@@ -170,7 +170,7 @@
   border: 1px solid var(--border);
   border-radius: var(--r-sm);
   background: var(--ground);
-  font-size: 14.5px;
+  font-size: 16px;
   color: var(--ink);
   width: 100%;
   appearance: none;

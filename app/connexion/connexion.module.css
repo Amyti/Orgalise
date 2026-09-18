@@ -103,7 +103,7 @@
   border: 1px solid var(--border);
   border-radius: var(--r-md);
   background: var(--surface);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--ink);
   appearance: none;
 }

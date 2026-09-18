@@ -224,6 +224,19 @@ textarea {
   color: inherit;
 }
 
+/* iOS zoome automatiquement sur tout champ dont le texte fait MOINS de
+   16 px, et ce zoom casse le plein écran de la PWA : barres de défilement
+   qui surgissent, mise en page décalée, sortie de l'illusion « app ».
+   16 px est le seuil exact, pas une préférence esthétique.
+
+   Ce repli ne couvre que les champs sans taille explicite : un module CSS
+   a une spécificité supérieure et gagnerait. D'où la règle dans CLAUDE.md. */
+input,
+select,
+textarea {
+  font-size: 16px;
+}
+
 button {
   cursor: pointer;
 }

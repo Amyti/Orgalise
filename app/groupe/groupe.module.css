@@ -87,7 +87,7 @@
   border: 1px solid var(--strong-border);
   border-radius: var(--r-sm);
   background: var(--strong-field);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--on-strong);
   appearance: none;
 }

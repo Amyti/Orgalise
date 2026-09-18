@@ -106,7 +106,11 @@ partout sans migration SQL.
 - Pas de dégradés, pas d'emoji, pas d'ombres portées sauf le bouton
   flottant `+`
 - Icônes : SVG trait, `stroke-width` 1.8–2.2
-- Base mobile : 390 × 844
+- Base mobile : 390 × 844, plafond de largeur 440 px (iPhone 16 Pro Max)
+- **Tout `input`, `select` ou `textarea` fait au moins 16 px.** En dessous,
+  iOS zoome à la mise au point : le plein écran de la PWA saute, les
+  barres de défilement apparaissent, la mise en page se décale. C'est une
+  contrainte de plateforme, pas un choix de design.
 
 ### Le langage visuel du calendrier (le cœur du produit)
 

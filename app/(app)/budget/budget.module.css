@@ -140,7 +140,7 @@
   border-radius: var(--r-sm);
   background: var(--strong-field);
   color: var(--on-strong);
-  font-size: 14.5px;
+  font-size: 16px;
   appearance: none;
 }
 
