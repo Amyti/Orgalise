@@ -12,9 +12,12 @@ type Intent = 'password' | 'signup' | 'magic' | 'apple'
 
 export function LoginForm({
   configured,
+  local,
   initialError,
 }: {
   configured: boolean
+  /** Vrai en développement local. */
+  local: boolean
   /** Message d'échec transmis par /auth/callback (lien expiré, etc.). */
   initialError?: string
 }) {
@@ -109,6 +112,7 @@ export function LoginForm({
 
         <Message
           configured={configured}
+          local={local}
           state={state}
           initialError={initialError}
         />
@@ -180,20 +184,37 @@ export function LoginForm({
 
 function Message({
   configured,
+  local,
   state,
   initialError,
 }: {
   configured: boolean
+  /** Vrai en développement : le geste de configuration diffère. */
+  local: boolean
   state: AuthState
   initialError?: string
 }) {
   if (!configured) {
+    // Le geste à faire n'est pas le même selon l'endroit : éditer un
+    // fichier en local, déclarer des variables chez l'hébergeur en ligne.
+    // Un message qui parle de `.env.local` en production envoie dans le mur.
     return (
       <div className={`${styles.message} ${styles.messageSetup}`}>
-        Supabase n'est pas configuré. Renseigne{' '}
-        <code>NEXT_PUBLIC_SUPABASE_URL</code> et{' '}
-        <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> dans <code>.env.local</code>,
-        puis relance <code>npm run dev</code>.
+        {local ? (
+          <>
+            Supabase n'est pas configuré. Renseigne{' '}
+            <code>NEXT_PUBLIC_SUPABASE_URL</code> et{' '}
+            <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> dans{' '}
+            <code>.env.local</code>, puis relance <code>npm run dev</code>.
+          </>
+        ) : (
+          <>
+            Supabase n'est pas configuré. Ajoute{' '}
+            <code>NEXT_PUBLIC_SUPABASE_URL</code> et{' '}
+            <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> aux variables
+            d'environnement de l'hébergement, puis redéploie.
+          </>
+        )}
       </div>
     )
   }

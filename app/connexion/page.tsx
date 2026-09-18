@@ -23,6 +23,7 @@ export default async function ConnexionPage({
   return (
     <LoginForm
       configured={hasSupabaseEnv()}
+      local={process.env.NODE_ENV !== 'production'}
       initialError={erreur ? (ERREURS[erreur] ?? ERREURS.lien) : undefined}
     />
   )
