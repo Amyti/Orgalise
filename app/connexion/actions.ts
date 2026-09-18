@@ -44,7 +44,13 @@ function frenchError(message: string, code?: string): string {
     return "La connexion Apple n'est pas activée côté Supabase."
   if (m.includes('fetch failed') || m.includes('network'))
     return 'Connexion au serveur impossible. Vérifie ton réseau.'
+  // Le SMTP a refusé. Supabase annule alors la création du compte :
+  // le dire, sinon la personne réessaie en boucle pour rien.
+  if (m.includes('error sending') || m.includes('smtp') || code === 'unexpected_failure')
+    return "L'e-mail n'a pas pu être envoyé. Le compte n'a pas été créé."
 
+  // Erreur non prévue : elle part dans les logs Vercel, l'écran reste sobre.
+  console.error('[auth]', code ?? 'sans code', message)
   return "Ça n'a pas marché. Réessaie."
 }
 
