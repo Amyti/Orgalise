@@ -16,7 +16,7 @@ import {
 } from '@/lib/dates'
 import { forecastMonth, remaining, upcoming, type Occurrence } from '@/lib/forecast'
 import { euros, roundedEuros } from '@/lib/money'
-import { requireSpace } from '@/lib/space'
+import { requireBudget } from '@/lib/space'
 import { LimitForm } from './LimitForm'
 import styles from './budget.module.css'
 
@@ -27,7 +27,7 @@ export default async function BudgetPage({
 }: {
   searchParams: Promise<{ mois?: string }>
 }) {
-  await requireSpace()
+  await requireBudget()
   const { mois } = await searchParams
 
   const now = new Date()

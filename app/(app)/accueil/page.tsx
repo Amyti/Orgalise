@@ -33,7 +33,7 @@ import {
 } from '@/lib/dates'
 import { atLeast, clip, minutes } from '@/lib/intervals'
 import { euros } from '@/lib/money'
-import { requireSpace } from '@/lib/space'
+import { currentProfile, requireSpace } from '@/lib/space'
 
 import styles from './accueil.module.css'
 
@@ -52,14 +52,17 @@ const EVENING_MIN_MINUTES = 120
 
 export default async function AccueilPage() {
   const space = await requireSpace()
+  const profile = await currentProfile()
+  const withBudget = profile?.modules.budget ?? true
   const now = new Date()
 
   const days = weekDays(now)
   const windowStart = startOfDay(now) < days[0] ? startOfDay(now) : days[0]
 
+  // Sans le module budget, on n'interroge même pas ses tables.
   const [agenda, budget] = await Promise.all([
     loadAgenda(space, windowStart, addDays(days[6], 1)),
-    loadMonth(now),
+    withBudget ? loadMonth(now) : null,
   ])
 
   const views = splitDays(agenda, days)
@@ -203,31 +206,33 @@ export default async function AccueilPage() {
           </div>
         </Link>
 
-        <Link href="/budget" className={styles.stat}>
-          <WalletIcon size={20} color="var(--user-b-line)" width={1.9} />
-          <div>
-            <div className={styles.statValue}>
-              {budget.remainingCents === null
-                ? euros(budget.totalCents)
-                : euros(budget.remainingCents)}
+        {budget && (
+          <Link href="/budget" className={styles.stat}>
+            <WalletIcon size={20} color="var(--user-b-line)" width={1.9} />
+            <div>
+              <div className={styles.statValue}>
+                {budget.remainingCents === null
+                  ? euros(budget.totalCents)
+                  : euros(budget.remainingCents)}
+              </div>
+              <div className={styles.statLabel}>
+                {budget.remainingCents === null ? (
+                  <>
+                    dépensés
+                    <br />
+                    ce mois-ci
+                  </>
+                ) : (
+                  <>
+                    restants sur
+                    <br />
+                    ton budget
+                  </>
+                )}
+              </div>
             </div>
-            <div className={styles.statLabel}>
-              {budget.remainingCents === null ? (
-                <>
-                  dépensés
-                  <br />
-                  ce mois-ci
-                </>
-              ) : (
-                <>
-                  restants sur
-                  <br />
-                  ton budget
-                </>
-              )}
-            </div>
-          </div>
-        </Link>
+          </Link>
+        )}
       </div>
 
       {/* --- Cette semaine ---------------------------------------------- */}

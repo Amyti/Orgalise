@@ -5,7 +5,7 @@ import { NavSpacer } from '@/components/Fab'
 import { ChevronLeftIcon, DownloadIcon } from '@/components/Icons'
 import { loadMonth } from '@/lib/budget'
 import { isoDay, monthName, parseIsoDay, startOfMonth } from '@/lib/dates'
-import { requireSpace } from '@/lib/space'
+import { requireBudget } from '@/lib/space'
 import { TableauView } from './TableauView'
 import styles from './tableau.module.css'
 
@@ -16,7 +16,7 @@ export default async function TableauPage({
 }: {
   searchParams: Promise<{ mois?: string }>
 }) {
-  await requireSpace()
+  await requireBudget()
   const { mois } = await searchParams
 
   const month = startOfMonth(parseIsoDay(mois) ?? new Date())

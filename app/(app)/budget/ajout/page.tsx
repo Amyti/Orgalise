@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 import { CloseIcon } from '@/components/Icons'
 import { isoDay, parseIsoDay } from '@/lib/dates'
-import { requireSpace } from '@/lib/space'
+import { requireBudget } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
 import { withPaletteColors } from '@/lib/categories'
 import type { Category } from '@/lib/types'
@@ -17,7 +17,7 @@ export default async function AjoutPage({
 }: {
   searchParams: Promise<{ date?: string }>
 }) {
-  await requireSpace()
+  await requireBudget()
   const { date } = await searchParams
 
   const supabase = await createClient()

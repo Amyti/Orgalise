@@ -14,7 +14,9 @@
   background: var(--ground);
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
+  /* `space-around` et non `space-between` : avec deux onglets seulement,
+     `space-between` les collerait aux deux bords de l'écran. */
+  justify-content: space-around;
   z-index: 20;
 }
 

@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 
 import { EspaceScreen } from '@/components/espace/EspaceScreen'
 import styles from '@/components/espace/espace.module.css'
-import { requireSpace } from '@/lib/space'
+import { currentProfile, requireSpace } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
 import type { CalendarFeed } from '@/lib/types'
 
@@ -11,6 +11,7 @@ export const metadata: Metadata = { title: "Votre espace" }
 /** Version « parcours d'entrée » : pas de barre de navigation, une sortie. */
 export default async function EspacePage() {
   const space = await requireSpace()
+  const profile = await currentProfile()
   const supabase = await createClient()
 
   const { data: feeds } = await supabase
@@ -24,6 +25,8 @@ export default async function EspacePage() {
         space={space}
         feeds={(feeds ?? []) as CalendarFeed[]}
         mode="onboarding"
+        displayName={profile?.display_name ?? space.me.display_name}
+        modules={profile?.modules ?? { agenda: true, budget: true, chosen: true }}
       />
     </div>
   )

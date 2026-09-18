@@ -3,14 +3,17 @@ import Link from 'next/link'
 import { redirect } from 'next/navigation'
 
 import { ChevronLeftIcon } from '@/components/Icons'
-import { currentSpace, requireUser } from '@/lib/space'
+import { landingPath } from '@/lib/modules'
+import { currentSpace, requireProfile } from '@/lib/space'
 import { GroupeForms } from './GroupeForms'
 import styles from './groupe.module.css'
 
 export const metadata: Metadata = { title: 'Votre espace commun' }
 
 export default async function GroupePage() {
-  await requireUser()
+  const profile = await requireProfile()
+  // Sans l'agenda, un espace partagé n'a aucune utilité.
+  if (!profile.modules.agenda) redirect(landingPath(profile.modules))
 
   // Déjà dans un espace : ce parcours est derrière nous.
   if (await currentSpace()) redirect('/accueil')

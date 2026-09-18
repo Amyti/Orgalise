@@ -277,3 +277,31 @@
   font-weight: 700;
   width: 100%;
 }
+
+/* Case à cocher des outils. Le label occupe toute la ligne : la cible
+   tactile fait la hauteur de la rangée, bien au-delà des 44 px. */
+.check {
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--ground);
+  appearance: none;
+  flex-shrink: 0;
+  display: grid;
+  place-content: center;
+}
+
+.check:checked {
+  background: var(--ink);
+  border-color: var(--ink);
+}
+
+.check:checked::after {
+  content: '';
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid var(--surface);
+  border-bottom: 2px solid var(--surface);
+  transform: rotate(-45deg) translate(1px, -1px);
+}

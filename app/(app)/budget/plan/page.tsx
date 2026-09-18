@@ -11,7 +11,7 @@ import {
 } from '@/lib/actions/plan'
 import { isoDay, monthName, shortDate, startOfMonth } from '@/lib/dates'
 import { euros } from '@/lib/money'
-import { requireSpace } from '@/lib/space'
+import { requireBudget } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
 import { withPaletteColors } from '@/lib/categories'
 import type { Category } from '@/lib/types'
@@ -22,7 +22,7 @@ import styles from './plan.module.css'
 export const metadata: Metadata = { title: 'Prévisionnel' }
 
 export default async function PlanPage() {
-  await requireSpace()
+  await requireBudget()
   const supabase = await createClient()
   const today = new Date()
 

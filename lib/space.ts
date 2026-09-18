@@ -4,6 +4,7 @@ import { redirect } from 'next/navigation'
 
 import { LOGIN_PATH } from './config'
 import { USER_A, USER_B } from './palette'
+import { landingPath, readModules, type Modules } from './modules'
 import { USER_HEADER } from './supabase/session'
 import { createClient } from './supabase/server'
 import type { Member, Space } from './types'
@@ -106,13 +107,79 @@ export const currentSpace = cache(async (): Promise<Space | null> => {
   }
 })
 
-/** Pour les écrans internes : sans espace, on renvoie au parcours d'entrée. */
+/**
+ * Profil de la personne connectée, avec ses outils activés.
+ *
+ * Une requête, indépendante de l'espace : le suivi de dépenses n'en a
+ * pas besoin, et on ne veut pas le faire dépendre du groupe pour rien.
+ */
+export const currentProfile = cache(async () => {
+  const userId = await currentUserId()
+  if (!userId) return null
+
+  const supabase = await createClient()
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('id, display_name, color, modules')
+    .eq('id', userId)
+    .maybeSingle()
+
+  // Tant que migrations/004 n'a pas été exécutée, la colonne n'existe
+  // pas. Sans ce repli, l'app tournerait en boucle de redirection pour
+  // des comptes qui marchaient très bien avant.
+  if (error?.code === '42703' || /column .*modules/i.test(error?.message ?? '')) {
+    const { data: legacy } = await supabase
+      .from('profiles')
+      .select('id, display_name, color')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (!legacy) return null
+    return {
+      ...legacy,
+      // Un compte antérieur au choix utilise les deux outils.
+      modules: { agenda: true, budget: true, chosen: true },
+    }
+  }
+
+  if (!data) return null
+  return {
+    id: data.id,
+    display_name: data.display_name,
+    color: data.color,
+    modules: readModules(data.modules),
+  }
+})
+
+/** Tout écran interne : il faut au minimum un compte et un choix d'outils. */
+export async function requireProfile() {
+  const profile = await currentProfile()
+  if (!profile) redirect(LOGIN_PATH)
+  if (!profile.modules.chosen) redirect('/demarrer')
+  return profile
+}
+
+/**
+ * Écrans de l'agenda : ils ont besoin d'un espace partagé.
+ *
+ * Quelqu'un qui n'a activé que le budget n'en a pas, et n'a pas à en
+ * créer un — on le renvoie vers ses dépenses plutôt que vers un écran
+ * d'invitation qui n'a pas de sens pour lui.
+ */
 export async function requireSpace(): Promise<Space> {
-  // Pas de `requireUser()` ici : il déclencherait un `getUser()` réseau
-  // alors que `currentSpace` sait déjà répondre à partir de l'en-tête.
+  const profile = await requireProfile()
+  if (!profile.modules.agenda) redirect(landingPath(profile.modules))
+
   const space = await currentSpace()
-  if (!space) redirect((await currentUserId()) ? '/groupe' : LOGIN_PATH)
+  if (!space) redirect('/groupe')
   return space
+}
+
+/** Écrans du budget : un compte suffit, aucun espace n'est nécessaire. */
+export async function requireBudget() {
+  const profile = await requireProfile()
+  if (!profile.modules.budget) redirect(landingPath(profile.modules))
+  return profile
 }
 
 /** Initiale affichée dans les pastilles. */

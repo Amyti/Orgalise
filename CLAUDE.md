@@ -6,7 +6,7 @@ Contexte du projet. À lire avant toute modification.
 
 ## Le projet
 
-App d'organisation pour **deux personnes** (un couple). Deux fonctions :
+App d'organisation. Deux outils, **activables séparément** :
 
 1. **Agenda partagé** — un calendrier commun, plus les disponibilités
    de chacun importées depuis leur calendrier perso. L'objectif n'est
@@ -17,7 +17,20 @@ App d'organisation pour **deux personnes** (un couple). Deux fonctions :
    « qui doit quoi à qui ». Le budget est privé même à l'intérieur
    d'un espace partagé.
 
-Deux utilisateurs en tout. Ne pas sur-architecturer pour le multi-tenant.
+À l'inscription, on choisit ce qu'on veut utiliser : l'un, l'autre, ou
+les deux. Modifiable ensuite dans les réglages.
+
+**Le budget ne dépend pas du groupe.** Ses six tables sont en
+`user_id = auth.uid()`, sans aucun `group_id` — c'était déjà le cas avant
+le choix des outils. Quelqu'un qui vient pour ses dépenses n'a donc pas
+d'espace partagé, pas de code d'invitation, personne à attendre. Les
+écrans budget appellent `requireBudget()` (un compte suffit), les écrans
+agenda `requireSpace()`.
+
+Un espace reste limité à **deux personnes**. Le nombre de comptes, lui,
+n'est plus borné : quelques amis peuvent utiliser le budget chacun de son
+côté. Ne pas sur-architecturer pour autant — l'échelle visée reste une
+poignée d'utilisateurs.
 
 ---
 
@@ -159,6 +172,7 @@ markup, les couleurs et les dimensions exactes y sont).
 | `Connexion` | email + mot de passe, lien magique, Apple |
 | `Groupe` | créer un espace **ou** rejoindre avec un code |
 | `Espace` | code d'invitation, membres, branchement des flux ICS |
+| *(sans maquette)* | `/demarrer` — choix des outils, juste après l'inscription |
 
 **Écran principal**
 | Fichier | Rôle |
@@ -180,7 +194,11 @@ markup, les couleurs et les dimensions exactes y sont).
 | `Tableau` | recherche, filtres, lignes groupées par jour avec sous-totaux, export CSV |
 | *(sans maquette)* | `/budget/plan` — revenus, charges fixes, dépenses prévues |
 
-Navigation basse : **Accueil · Agenda · Budget · Nous**
+Navigation basse, **adaptée aux outils activés** :
+les deux → **Accueil · Agenda · Budget · Nous** ;
+budget seul → **Budget · Réglages**. Même route `/nous` dans les deux cas,
+seul le libellé change — l'écran affiche les blocs liés à l'espace
+uniquement quand il y en a un.
 (les trois écrans calendrier sont encore sur une ancienne nav à 3 items,
 à uniformiser).
 

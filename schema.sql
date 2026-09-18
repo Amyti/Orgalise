@@ -11,6 +11,12 @@ create table public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
   display_name text not null default 'Moi',
   color       text not null default '#A94F2E',
+  -- Outils activés : 'agenda', 'budget', ou les deux. Un tableau vide
+  -- signifie « pas encore choisi » et déclenche l'écran de bienvenue.
+  -- Le budget ne dépendant d'aucun groupe, un compte peut n'avoir que
+  -- 'budget' et ne jamais créer d'espace.
+  modules     text[] not null default '{}'
+    check (modules <@ array['agenda', 'budget']::text[]),
   created_at  timestamptz not null default now()
 );
 
