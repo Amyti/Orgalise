@@ -5,8 +5,8 @@ import { AFTER_LOGIN_PATH, LOGIN_PATH } from '@/lib/config'
 import { createClient } from '@/lib/supabase/server'
 
 /**
- * Retour des liens envoyés par e-mail (lien magique, confirmation
- * d'inscription) et des redirections OAuth.
+ * Retour des liens envoyés par e-mail : lien magique et confirmation
+ * d'inscription.
  *
  * Deux formats selon la configuration du projet Supabase :
  *   - `?code=…`                   → échange PKCE
@@ -25,9 +25,9 @@ export async function GET(request: NextRequest) {
       ? nextParam
       : AFTER_LOGIN_PATH
 
-  // Le fournisseur OAuth a refusé ou l'utilisateur a annulé.
+  // Supabase signale un lien refusé côté serveur avant même la vérification.
   if (searchParams.get('error')) {
-    return NextResponse.redirect(`${origin}${LOGIN_PATH}?erreur=apple`)
+    return NextResponse.redirect(`${origin}${LOGIN_PATH}?erreur=lien`)
   }
 
   const supabase = await createClient()

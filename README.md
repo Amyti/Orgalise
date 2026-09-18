@@ -23,8 +23,6 @@ Sans les clés, l'écran de connexion s'affiche quand même et indique ce qu'il 
 4. **Project Settings → API** : copier `Project URL` et la clé `anon` dans `.env.local`.
 5. **Authentication → URL Configuration → Redirect URLs** : ajouter
    `http://localhost:3000/auth/callback` (et l'URL Vercel en prod).
-6. Facultatif : **Authentication → Providers → Apple** pour activer le
-   troisième bouton de connexion.
 
 Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 
@@ -32,7 +30,7 @@ Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 
 | Route | Maquette | Rôle |
 |---|---|---|
-| `/connexion` | `Connexion` | mot de passe, lien magique, Apple, création de compte |
+| `/connexion` | `Connexion` | mot de passe, lien magique, création de compte |
 | `/groupe` | `Groupe` | créer un espace **ou** rejoindre avec un code |
 | `/espace` | `Espace` | étape 2 : code d'invitation, membres, flux iCal |
 | `/accueil` | `Accueil` | timeline du jour, prochain événement, budget restant |

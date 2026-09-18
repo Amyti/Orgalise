@@ -55,6 +55,12 @@ poignée d'utilisateurs.
   installée sur l'écran d'accueil (iOS 16.4+).
 - Cron Vercel gratuit : 1 exécution par jour maximum. Donc la synchro
   ICS se fait **à l'ouverture de l'app**, pas en tâche planifiée.
+- **« Se connecter avec Apple » n'existe pas dans l'app**, alors que la
+  maquette `Connexion` en montre le bouton. Sur le web, ce mode de
+  connexion exige un Services ID et une clé de signature, que seul un
+  compte Apple Developer payant permet de créer — les mêmes 99 $/an que
+  la distribution en PWA sert à éviter. Ne pas le remettre d'après la
+  maquette.
 
 ---
 
@@ -169,7 +175,7 @@ markup, les couleurs et les dimensions exactes y sont).
 **Parcours d'entrée**
 | Fichier | Rôle |
 |---|---|
-| `Connexion` | email + mot de passe, lien magique, Apple |
+| `Connexion` | email + mot de passe, lien magique |
 | `Groupe` | créer un espace **ou** rejoindre avec un code |
 | `Espace` | code d'invitation, membres, branchement des flux ICS |
 | *(sans maquette)* | `/demarrer` — choix des outils, juste après l'inscription |

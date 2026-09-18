@@ -40,8 +40,6 @@ function frenchError(message: string, code?: string): string {
     return `Mot de passe trop court : ${MIN_PASSWORD} caractères minimum.`
   if (code === 'over_email_send_rate_limit' || m.includes('rate limit') || m.includes('too many'))
     return 'Trop de tentatives. Réessaie dans quelques minutes.'
-  if (m.includes('unsupported provider') || m.includes('provider is not enabled'))
-    return "La connexion Apple n'est pas activée côté Supabase."
   if (m.includes('fetch failed') || m.includes('network'))
     return 'Connexion au serveur impossible. Vérifie ton réseau.'
   // Le SMTP a refusé. Supabase annule alors la création du compte :
@@ -60,7 +58,7 @@ function readEmail(formData: FormData) {
 
 /**
  * Action unique du formulaire de connexion. Le bouton cliqué porte
- * `name="intent"`, ce qui évite de dupliquer l'état entre quatre actions.
+ * `name="intent"`, ce qui évite de dupliquer l'état entre trois actions.
  */
 export async function authenticate(
   _prevState: AuthState,
@@ -69,8 +67,6 @@ export async function authenticate(
   const intent = String(formData.get('intent') ?? 'password')
   const email = readEmail(formData)
   const password = String(formData.get('password') ?? '')
-
-  if (intent === 'apple') return signInWithApple()
 
   if (!email) {
     return { status: 'error', message: 'Entre ton adresse e-mail.', field: 'email', email }
@@ -161,18 +157,4 @@ async function sendMagicLink(email: string): Promise<AuthState> {
     message: `Lien envoyé à ${email}. Ouvre-le sur ce téléphone.`,
     email,
   }
-}
-
-async function signInWithApple(): Promise<AuthState> {
-  const supabase = await createClient()
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'apple',
-    options: { redirectTo: `${await siteOrigin()}/auth/callback` },
-  })
-
-  if (error || !data.url) {
-    return { status: 'error', message: frenchError(error?.message ?? '') }
-  }
-
-  redirect(data.url)
 }

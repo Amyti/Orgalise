@@ -8,7 +8,7 @@ import { initialAuthState, type AuthState } from './state'
 import styles from './connexion.module.css'
 
 type Mode = 'signin' | 'signup'
-type Intent = 'password' | 'signup' | 'magic' | 'apple'
+type Intent = 'password' | 'signup' | 'magic'
 
 export function LoginForm({
   configured,
@@ -27,7 +27,7 @@ export function LoginForm({
   )
 
   const [mode, setMode] = useState<Mode>('signin')
-  // Quatre boutons partagent une seule action : on mémorise celui qui a
+  // Trois boutons partagent une seule action : on mémorise celui qui a
   // été cliqué pour n'afficher l'état d'attente que sur celui-là.
   const [pendingIntent, setPendingIntent] = useState<Intent | null>(null)
 
@@ -152,16 +152,6 @@ export function LoginForm({
             disabled={disabled}
           >
             {busy('magic') ? 'Envoi…' : 'Recevoir un lien par e-mail'}
-          </button>
-          <button
-            type="submit"
-            name="intent"
-            value="apple"
-            className={styles.secondary}
-            onClick={() => setPendingIntent('apple')}
-            disabled={disabled}
-          >
-            {busy('apple') ? 'Ouverture…' : 'Continuer avec Apple'}
           </button>
         </div>
       </form>
