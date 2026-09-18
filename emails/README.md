@@ -9,10 +9,16 @@ Supabase → Authentication → Emails → Templates.
 `confirmation.html` va dans **Confirm signup**, `lien-magique.html` dans
 **Magic Link**. Coller le fichier entier dans le champ *Message body*.
 
-Les templates sont modifiables sur le plan gratuit. Ce qui ne l'est pas :
-l'adresse d'expédition (`noreply@mail.app.supabase.io`) et le débit
-d'envoi du SMTP intégré, très bas. Pour les deux, il faut brancher un
-SMTP perso dans Authentication → SMTP Settings.
+**L'éditeur est verrouillé tant qu'un SMTP perso n'est pas branché.**
+Sans lui, Supabase impose ses templates par défaut, envoie depuis
+`noreply@mail.app.supabase.io` et plafonne à 2 mails par heure. Le
+réglage est dans Authentication → SMTP Settings ; ici c'est le SMTP de
+Gmail, authentifié par un mot de passe d'application, qui sert de relais.
+
+L'autre issue, si on ne veut pas de SMTP du tout, est de décocher
+*Confirm email* dans Authentication → Sign In / Providers → Email :
+aucun mail n'est alors envoyé à l'inscription. `signUp()` le gère déjà,
+la session arrive directement.
 
 ## Le lien n'est pas décoratif
 
