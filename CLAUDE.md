@@ -42,7 +42,8 @@ poignée d'utilisateurs.
 | Hébergement | Vercel, plan Hobby | gratuit, usage perso |
 | Base / auth | Supabase, plan Free | Postgres + RLS + realtime |
 | Distribution | **PWA**, pas d'app native | pas de compte Apple à 99 $/an |
-| Coût total | 0 € | |
+| Domaine et mail | `orgalise.fr` + boîte IONOS | envoi authentifié depuis son propre domaine |
+| Coût total | ~14 € TTC la 1re année | puis 2,50 € HT/mois — pensable à résilier |
 
 ### Contraintes à connaître
 
@@ -55,6 +56,11 @@ poignée d'utilisateurs.
   installée sur l'écran d'accueil (iOS 16.4+).
 - Cron Vercel gratuit : 1 exécution par jour maximum. Donc la synchro
   ICS se fait **à l'ouverture de l'app**, pas en tâche planifiée.
+- **Le DNS d'`orgalise.fr` reste chez IONOS.** Ne pas déléguer les
+  serveurs de noms à Vercel : les enregistrements MX de la boîte mail
+  partiraient avec, et l'app n'enverrait plus rien. On pose seulement
+  l'enregistrement A et le CNAME que Vercel demande, le reste ne bouge
+  pas.
 - **« Se connecter avec Apple » n'existe pas dans l'app**, alors que la
   maquette `Connexion` en montre le bouton. Sur le web, ce mode de
   connexion exige un Services ID et une clé de signature, que seul un
