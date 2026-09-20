@@ -1,4 +1,4 @@
-import { daysInMonth } from './forecast'
+import { daysInMonth, type SavingsRule } from './forecast'
 import { parseIsoDay, startOfMonth, wall } from './dates'
 
 /**
@@ -28,6 +28,15 @@ export type Goal = {
   hold_in_budget: boolean
 }
 
+/**
+ * Une règle d'épargne mensuelle : ce qu'on met vraiment de côté.
+ *
+ * `goal_id` à `null` = épargne libre, qui sort de l'enveloppe sans être
+ * fléchée. La forme est définie dans `lib/forecast.ts`, avec les autres
+ * règles projetables.
+ */
+export type SavingsPlan = SavingsRule
+
 export type GoalStatus = {
   goal: Goal
   shared: boolean
@@ -44,6 +53,15 @@ export type GoalStatus = {
   done: boolean
   /** Échéance dépassée sans que la cible soit atteinte. */
   late: boolean
+  /** Ce qu'on a déclaré mettre de côté chaque mois pour cet objectif. */
+  declaredCents: number
+  /**
+   * Ce qu'on aura à l'échéance au rythme déclaré. Vaut l'épargne
+   * actuelle quand rien n'est déclaré.
+   */
+  projectedCents: number
+  /** Ce qui manquera à l'échéance à ce rythme. Zéro si l'objectif tient. */
+  shortfallCents: number
 }
 
 /**
@@ -60,7 +78,7 @@ export function monthsBetween(from: Date, to: Date): number {
   return (b.year - a.year) * 12 + (b.month - a.month)
 }
 
-export function statusOf(goal: Goal, now: Date): GoalStatus {
+export function statusOf(goal: Goal, now: Date, declaredCents = 0): GoalStatus {
   const target = parseIsoDay(goal.target_on)
   const remainingCents = Math.max(0, goal.target_cents - goal.saved_cents)
   const done = remainingCents === 0
@@ -76,6 +94,10 @@ export function statusOf(goal: Goal, now: Date): GoalStatus {
   const effective = Math.max(1, monthsLeft)
   const monthlyCents = done ? 0 : Math.ceil(remainingCents / effective)
 
+  // Au rythme déclaré, où en sera-t-on à l'échéance ? C'est la question
+  // que « 40 % atteints » ne répond jamais.
+  const projected = goal.saved_cents + declaredCents * monthsLeft
+
   return {
     goal,
     shared: goal.group_id !== null,
@@ -89,20 +111,41 @@ export function statusOf(goal: Goal, now: Date): GoalStatus {
     ratio: goal.target_cents === 0 ? 0 : Math.min(1, goal.saved_cents / goal.target_cents),
     done,
     late,
+    declaredCents,
+    projectedCents: projected,
+    shortfallCents: Math.max(0, goal.target_cents - projected),
   }
 }
 
 /**
- * Ce que les objectifs ponctionnent sur l'enveloppe d'un mois.
+ * Ce que les objectifs retiennent d'OFFICE sur l'enveloppe.
  *
- * Seuls comptent ceux dont la case est cochée, et seulement tant que
- * l'échéance n'est pas passée : un objectif en retard cesse de peser sur
- * le budget, sinon il l'écraserait indéfiniment.
+ * Trois conditions : la case est cochée, l'objectif n'est ni atteint ni
+ * en retard — un objectif dépassé cesse de peser, sinon il écraserait le
+ * budget indéfiniment — et surtout **rien n'a été déclaré pour lui**.
+ *
+ * Ce dernier point est la règle qui compte : dès qu'on dit « je mets
+ * 300 € par mois », ce sont ces 300 € qui sortent de l'enveloppe, pas
+ * les 1 111 € théoriques. On retient ce qui part vraiment du compte ; le
+ * montant nécessaire, lui, reste affiché comme un avertissement.
+ *
+ * L'épargne déclarée est comptée ailleurs, par `forecastMonth`, qui la
+ * projette comme une règle — elle sort de l'enveloppe qu'elle soit
+ * fléchée vers un objectif ou libre.
  */
 export function heldCents(statuses: GoalStatus[]): number {
   return statuses
-    .filter((s) => s.goal.hold_in_budget && !s.done && !s.late)
+    .filter((s) => s.goal.hold_in_budget && !s.done && !s.late && s.declaredCents === 0)
     .reduce((total, s) => total + s.shareCents, 0)
+}
+
+/** Total déclaré pour chaque objectif, par mois. Clé `null` : épargne libre. */
+export function declaredByGoal(plans: SavingsPlan[]): Map<string | null, number> {
+  const totals = new Map<string | null, number>()
+  for (const plan of plans) {
+    totals.set(plan.goal_id, (totals.get(plan.goal_id) ?? 0) + plan.amount_cents)
+  }
+  return totals
 }
 
 /**

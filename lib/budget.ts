@@ -1,5 +1,5 @@
 import { addMonths, isoDay, startOfMonth } from './dates'
-import type { FixedCharge, Income, PlannedExpense } from './forecast'
+import type { FixedCharge, Income, PlannedExpense, SavingsRule } from './forecast'
 import { createClient } from './supabase/server'
 import { withPaletteColors } from './categories'
 import type { Budget, Category, Expense } from './types'
@@ -128,7 +128,7 @@ export async function loadDashboard(date: Date) {
   const next = addMonths(month, 1)
   const trendFrom = addMonths(month, -5)
 
-  const [budget, incomes, fixed, planned, history, goals] = await Promise.all([
+  const [budget, incomes, fixed, planned, history, goals, savings] = await Promise.all([
     loadMonth(month),
     supabase
       .from('incomes')
@@ -155,6 +155,10 @@ export async function loadDashboard(date: Date) {
       .from('savings_goals')
       .select('id, user_id, group_id, label, target_cents, saved_cents, target_on, hold_in_budget')
       .order('target_on'),
+    supabase
+      .from('savings_plans')
+      .select('id, goal_id, label, amount_cents, day_of_month, starts_on, ends_on')
+      .order('day_of_month'),
   ])
 
   return {
@@ -166,6 +170,7 @@ export async function loadDashboard(date: Date) {
     // Vide tant que migrations/005 n'a pas été exécutée : l'écran
     // fonctionne sans, il ne montre simplement aucun objectif.
     goals: (goals.data ?? []) as Goal[],
+    savings: (savings.data ?? []) as SavingsRule[],
   }
 }
 

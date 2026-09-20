@@ -21,7 +21,8 @@ import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
 import { parseExpenseJson, rowKey, totalCents, MAX_ROWS } from '../lib/import'
-import { heldCents, monthsBetween, statusOf, type Goal } from '../lib/goals'
+import { declaredByGoal, heldCents, monthsBetween, statusOf, type Goal } from '../lib/goals'
+import type { SavingsRule } from '../lib/forecast'
 
 let failures = 0
 function check(name: string, actual: unknown, expected: unknown) {
@@ -398,6 +399,37 @@ check('ponction sur l’enveloppe', heldCents([
   statusOf(objectif({ id: 'g4', target_on: '2026-08-01' }), sept),
 ]), 111112)
 check('aucun objectif → rien à retenir', heldCents([]), 0)
+
+// --- Ce qu'on met VRAIMENT de côté, face à ce qu'il faudrait ----------
+// L'écart entre les deux est le seul message utile : « 40 % atteints »
+// ne dit jamais si le rythme suffit.
+const verse300 = statusOf(objectif(), sept, 30_000)
+check('projection au rythme déclaré', verse300.projectedCents, 270_000)
+check('manque à l’arrivée', verse300.shortfallCents, 730_000)
+check('le nécessaire reste affiché', verse300.monthlyCents, 111112)
+
+// Au bon rythme, il ne manque rien.
+check('rythme suffisant', statusOf(objectif(), sept, 111_112).shortfallCents, 0)
+check('sans versement, projection = épargne actuelle',
+  statusOf(objectif({ saved_cents: 200_000 }), sept).projectedCents, 200_000)
+
+// Dès qu'un versement est déclaré, c'est LUI qui sort de l'enveloppe —
+// pas le montant théorique, qu'on ne verse pas.
+check('le déclaré prime sur le calculé', heldCents([statusOf(objectif(), sept, 30_000)]), 0)
+check('sans déclaration, on retient le nécessaire',
+  heldCents([statusOf(objectif(), sept)]), 111112)
+
+const regle = (over: Partial<SavingsRule> = {}): SavingsRule => ({
+  id: 'p1', goal_id: 'g1', label: 'Virement', amount_cents: 30_000,
+  day_of_month: 5, starts_on: '2026-01-01', ends_on: null, ...over,
+})
+const totaux = declaredByGoal([
+  regle(), regle({ id: 'p2', amount_cents: 10_000 }),
+  regle({ id: 'p3', goal_id: null, amount_cents: 5_000 }),
+])
+check('versements cumulés par objectif', totaux.get('g1'), 40_000)
+check('épargne libre sous la clé nulle', totaux.get(null), 5_000)
+check('aucune règle → aucune entrée', declaredByGoal([]).size, 0)
 
 console.log(`\n${failures === 0 ? '✓ tout passe' : `✗ ${failures} échec(s)`}\n`)
 process.exit(failures === 0 ? 0 : 1)

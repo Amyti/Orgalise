@@ -7,6 +7,7 @@ import {
   removeFixedCharge,
   removeIncome,
   removePlanned,
+  removeSavingsPlan,
   settlePlanned,
 } from '@/lib/actions/plan'
 import { isoDay, monthName, shortDate, startOfMonth } from '@/lib/dates'
@@ -15,7 +16,8 @@ import { requireBudget } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
 import { withPaletteColors } from '@/lib/categories'
 import type { Category } from '@/lib/types'
-import type { FixedCharge, Income, PlannedExpense } from '@/lib/forecast'
+import type { FixedCharge, Income, PlannedExpense, SavingsRule } from '@/lib/forecast'
+import type { Goal } from '@/lib/goals'
 import { PlanForm } from './PlanForms'
 import styles from './plan.module.css'
 
@@ -26,7 +28,7 @@ export default async function PlanPage() {
   const supabase = await createClient()
   const today = new Date()
 
-  const [incomesQ, fixedQ, plannedQ, { data: categories }] =
+  const [incomesQ, fixedQ, plannedQ, { data: categories }, savingsQ, goalsQ] =
     await Promise.all([
       supabase
         .from('incomes')
@@ -42,6 +44,14 @@ export default async function PlanPage() {
         .gte('due_on', isoDay(startOfMonth(today)))
         .order('due_on'),
       supabase.from('categories').select('id, name, color, position').order('position'),
+      supabase
+        .from('savings_plans')
+        .select('id, goal_id, label, amount_cents, day_of_month, starts_on, ends_on')
+        .order('day_of_month'),
+      supabase
+        .from('savings_goals')
+        .select('id, user_id, group_id, label, target_cents, saved_cents, target_on, hold_in_budget')
+        .order('target_on'),
     ])
 
   // Tant que migrations/002 n'a pas été exécutée, les trois tables
@@ -54,6 +64,13 @@ export default async function PlanPage() {
   const incomes = incomesQ.data
   const fixed = fixedQ.data
   const planned = plannedQ.data
+
+  // Vides tant que migrations/006 n'a pas été exécutée : la section
+  // s'affiche alors sans lignes, et l'enregistrement le dit clairement.
+  const savingsList = (savingsQ.data ?? []) as SavingsRule[]
+  const goals = (goalsQ.data ?? []) as Goal[]
+  const savingsTotal = savingsList.reduce((t, p) => t + p.amount_cents, 0)
+  const goalById = new Map(goals.map((g) => [g.id, g]))
 
   const cats = withPaletteColors((categories ?? []) as Category[])
   const byId = new Map(cats.map((c) => [c.id, c]))
@@ -180,6 +197,60 @@ export default async function PlanPage() {
         <p className={styles.hint}>
           Les charges fixes sont retirées de l'enveloppe du mois, sans que tu
           aies à les saisir en dépense.
+        </p>
+      </section>
+
+      {/* --- Épargne ------------------------------------------------------ */}
+      <section className={styles.section}>
+        <div className={styles.sectionHead}>
+          <h2 className="sectionTitle">Ce qu'on met de côté</h2>
+          <div className={styles.sectionTotal}>{euros(savingsTotal)}</div>
+        </div>
+
+        <div className="list">
+          {savingsList.length > 0 ? (
+            savingsList.map((plan) => {
+              const goal = plan.goal_id ? goalById.get(plan.goal_id) : undefined
+              return (
+                <div key={plan.id} className={styles.row}>
+                  <span
+                    className={styles.rowDot}
+                    style={{ background: goal ? 'var(--user-b)' : 'var(--border-strong)' }}
+                  />
+                  <div className={styles.rowMain}>
+                    <div className={styles.rowLabel}>{plan.label}</div>
+                    <div className={styles.rowMeta}>
+                      le {plan.day_of_month}
+                      {goal ? ` · ${goal.label}` : ' · épargne libre'}
+                    </div>
+                  </div>
+                  <div className={styles.rowAmount}>{euros(plan.amount_cents)}</div>
+                  <form action={removeSavingsPlan} className={styles.rowActions}>
+                    <input type="hidden" name="id" value={plan.id} />
+                    <button
+                      type="submit"
+                      className={styles.iconButton}
+                      aria-label={`Supprimer ${plan.label}`}
+                    >
+                      <TrashIcon size={15} color="var(--ink-soft)" />
+                    </button>
+                  </form>
+                </div>
+              )
+            })
+          ) : (
+            <div className="empty">
+              Le virement mensuel vers ton livret, fléché vers un objectif ou
+              non.
+            </div>
+          )}
+        </div>
+
+        <PlanForm kind="savings" categories={cats} goals={goals} />
+        <p className={styles.hint}>
+          Ces virements sortent de l'enveloppe comme une charge fixe. Quand un
+          objectif reçoit un virement, c'est ce montant-là qui compte, et non
+          celui que l'objectif réclamerait.
         </p>
       </section>
 

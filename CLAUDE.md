@@ -287,7 +287,7 @@ Tout l'écran Budget tourne autour du **reste à vivre** :
   revenus du mois
 − charges fixes
 − dépenses prévues pas encore payées
-− épargne retenue par les objectifs
+− épargne mise de côté
 ────────────────────────────────────
 = enveloppe
 − déjà dépensé
@@ -319,6 +319,23 @@ budget indéfiniment.
 `forecastMonth()` reçoit une **somme**, pas la liste des objectifs :
 `lib/forecast.ts` ignore jusqu'à leur existence et ne connaît qu'un
 montant qui sort de l'enveloppe.
+
+**Ce qu'il faudrait, et ce qu'on met.** `savings_plans` est une troisième
+table de règles, après les revenus et les charges fixes : un montant, un
+jour du mois, des bornes de validité, et un `goal_id` qui peut rester
+nul — l'épargne libre sort de l'enveloppe sans être fléchée. Elle se
+saisit dans le prévisionnel, avec un menu déroulant qui demande vers quel
+objectif.
+
+La règle qui les articule : **dès qu'un virement est déclaré pour un
+objectif, c'est lui qui sort de l'enveloppe**, pas le montant théorique.
+On retient ce qui part vraiment du compte. Le montant nécessaire ne
+disparaît pas pour autant, il devient un avertissement — « tu mets 300 €,
+il en faudrait 1 111, à ce rythme il manquera 7 300 € en juin ». C'est
+cette phrase-là qui fait agir, pas une barre à 40 %.
+
+Un objectif sans virement déclaré retombe sur la retenue d'office, si sa
+case est cochée.
 
 ### L'import de dépenses
 

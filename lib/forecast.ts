@@ -22,6 +22,17 @@ export type FixedCharge = Income & {
   category_id: string | null
 }
 
+/**
+ * Une règle d'épargne mensuelle. `goal_id` à `null` = épargne libre.
+ *
+ * La forme vit ici, avec les autres règles projetables, plutôt que dans
+ * `lib/goals.ts` — qui importe déjà ce module, et dont l'import en sens
+ * inverse serait circulaire.
+ */
+export type SavingsRule = Income & {
+  goal_id: string | null
+}
+
 export type PlannedExpense = {
   id: string
   label: string
@@ -40,7 +51,7 @@ export type Occurrence = {
   /** Date réelle dans le mois, jour de fin ramené si le mois est court. */
   on: Date
   categoryId: string | null
-  kind: 'income' | 'fixed' | 'planned'
+  kind: 'income' | 'fixed' | 'planned' | 'savings'
   /** Pour une dépense prévue déjà pointée. */
   settled?: boolean
 }
@@ -75,11 +86,15 @@ export type MonthForecast = {
   incomes: Occurrence[]
   fixed: Occurrence[]
   planned: Occurrence[]
+  /** Les virements d'épargne déclarés, projetés sur ce mois. */
+  savings: Occurrence[]
   incomeCents: number
   fixedCents: number
   /** Prévu et pas encore payé : c'est ce qu'il faut encore mettre de côté. */
   plannedPendingCents: number
-  /** Épargne retenue par les objectifs du mois. Voir `lib/goals.ts`. */
+  /** Épargne déclarée ce mois-ci : ce qui part vraiment du compte. */
+  declaredSavingsCents: number
+  /** Épargne déclarée + retenue d'office par les objectifs sans règle. */
   savingsCents: number
   /** Revenus − charges − prévu restant − épargne. Ce qu'il y a à dépenser. */
   envelopeCents: number
@@ -90,13 +105,15 @@ export function forecastMonth(
   incomes: Income[],
   fixed: FixedCharge[],
   planned: PlannedExpense[],
+  /** Les virements d'épargne déclarés, projetés comme les charges fixes. */
+  savings: SavingsRule[] = [],
   /*
-   * Ce que les objectifs d'épargne retiennent ce mois-ci, calculé par
-   * `heldCents` dans `lib/goals.ts`. Le passer en nombre plutôt qu'en
-   * liste garde ce module ignorant des objectifs : il ne connaît qu'une
-   * somme qui sort de l'enveloppe, comme une charge fixe.
+   * Ce que les objectifs SANS règle déclarée retiennent d'office,
+   * calculé par `heldCents` dans `lib/goals.ts`. Le passer en nombre
+   * plutôt qu'en liste garde ce module ignorant des objectifs : il ne
+   * connaît qu'une somme qui sort de l'enveloppe.
    */
-  savingsCents = 0,
+  autoHoldCents = 0,
 ): MonthForecast {
   const start = startOfMonth(month)
 
@@ -122,6 +139,17 @@ export function forecastMonth(
       kind: 'fixed' as const,
     }))
 
+  const savingsOcc: Occurrence[] = savings
+    .filter((p) => appliesTo(p, start))
+    .map((p) => ({
+      id: p.id,
+      label: p.label,
+      amountCents: p.amount_cents,
+      on: dueDate(start, p.day_of_month),
+      categoryId: null,
+      kind: 'savings' as const,
+    }))
+
   const monthStart = isoDay(start)
   const monthEnd = isoDay(addMonths(start, 1))
   const plannedOcc: Occurrence[] = planned
@@ -141,15 +169,19 @@ export function forecastMonth(
   const incomeCents = sum(incomeOcc)
   const fixedCents = sum(fixedOcc)
   const plannedPendingCents = sum(plannedOcc.filter((p) => !p.settled))
+  const declaredSavingsCents = sum(savingsOcc)
+  const savingsCents = declaredSavingsCents + autoHoldCents
 
   return {
     month: start,
     incomes: byDate(incomeOcc),
     fixed: byDate(fixedOcc),
     planned: byDate(plannedOcc),
+    savings: byDate(savingsOcc),
     incomeCents,
     fixedCents,
     plannedPendingCents,
+    declaredSavingsCents,
     savingsCents,
     envelopeCents: incomeCents - fixedCents - plannedPendingCents - savingsCents,
   }

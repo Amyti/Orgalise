@@ -15,7 +15,7 @@ import {
   wall,
 } from '@/lib/dates'
 import { forecastMonth, remaining, upcoming, type Occurrence } from '@/lib/forecast'
-import { heldCents, statusOf } from '@/lib/goals'
+import { declaredByGoal, heldCents, statusOf } from '@/lib/goals'
 import { euros, roundedEuros } from '@/lib/money'
 import { requireBudget } from '@/lib/space'
 import { LimitForm } from './LimitForm'
@@ -33,16 +33,23 @@ export default async function BudgetPage({
 
   const now = new Date()
   const month = startOfMonth(parseIsoDay(mois) ?? now)
-  const { budget, incomes, fixed, planned, history, goals } = await loadDashboard(month)
+  const { budget, incomes, fixed, planned, history, goals, savings } =
+    await loadDashboard(month)
 
-  // Un objectif retient de l'argent avant qu'on puisse le dépenser :
-  // il entre dans l'enveloppe au même titre qu'une charge fixe.
-  const statuses = goals.map((g) => statusOf(g, now))
+  /*
+   * Trois choses s'enchaînent ici. Ce qu'on a déclaré verser à chaque
+   * objectif, l'état de chaque objectif à la lumière de ce versement, et
+   * enfin ce que les objectifs SANS versement déclaré retiennent
+   * d'office. L'épargne déclarée, elle, sort de l'enveloppe par la
+   * projection normale des règles.
+   */
+  const declared = declaredByGoal(savings)
+  const statuses = goals.map((g) => statusOf(g, now, declared.get(g.id) ?? 0))
   const held = heldCents(statuses)
 
-  const forecast = forecastMonth(month, incomes, fixed, planned, held)
+  const forecast = forecastMonth(month, incomes, fixed, planned, savings, held)
   const planned2 = [1, 2].map((offset) =>
-    forecastMonth(addMonths(month, offset), incomes, fixed, planned, held),
+    forecastMonth(addMonths(month, offset), incomes, fixed, planned, savings, held),
   )
 
   // Les dépenses prévues déjà pointées ont créé une vraie dépense : elles

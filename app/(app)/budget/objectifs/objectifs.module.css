@@ -276,3 +276,27 @@
   gap: 8px;
   align-items: stretch;
 }
+
+/* Le verdict au rythme actuel : c'est lui qui fait agir. */
+.warn,
+.good {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  font-weight: 600;
+}
+
+.warn {
+  color: var(--user-a);
+}
+
+.good {
+  color: var(--user-b);
+}
+
+.hint {
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}

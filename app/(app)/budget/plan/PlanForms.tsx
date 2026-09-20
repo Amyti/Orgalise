@@ -3,17 +3,19 @@
 import { useActionState, useState } from 'react'
 
 import { PlusIcon } from '@/components/Icons'
-import { saveFixedCharge, saveIncome, savePlanned } from '@/lib/actions/plan'
+import { saveFixedCharge, saveIncome, savePlanned, saveSavingsPlan } from '@/lib/actions/plan'
 import { initialExpenseState } from '@/lib/actions/state'
+import type { Goal } from '@/lib/goals'
 import type { Category } from '@/lib/types'
 import styles from './plan.module.css'
 
-type Kind = 'income' | 'fixed' | 'planned'
+type Kind = 'income' | 'fixed' | 'planned' | 'savings'
 
 const WORDING: Record<Kind, { add: string; name: string; placeholder: string }> = {
   income: { add: 'Ajouter un revenu', name: 'Intitulé', placeholder: 'Salaire' },
   fixed: { add: 'Ajouter une charge fixe', name: 'Intitulé', placeholder: 'Loyer' },
   planned: { add: 'Ajouter une dépense prévue', name: 'Intitulé', placeholder: 'Impôts' },
+  savings: { add: 'Ajouter un virement d’épargne', name: 'Intitulé', placeholder: 'Virement livret' },
 }
 
 /**
@@ -25,14 +27,23 @@ export function PlanForm({
   kind,
   categories,
   defaultDue,
+  goals = [],
 }: {
   kind: Kind
   categories: Category[]
   /** Date par défaut d'une dépense prévue, au format `YYYY-MM-DD`. */
   defaultDue?: string
+  /** Objectifs proposés au fléchage, pour l'épargne uniquement. */
+  goals?: Goal[]
 }) {
   const action =
-    kind === 'income' ? saveIncome : kind === 'fixed' ? saveFixedCharge : savePlanned
+    kind === 'income'
+      ? saveIncome
+      : kind === 'fixed'
+        ? saveFixedCharge
+        : kind === 'savings'
+          ? saveSavingsPlan
+          : savePlanned
   const [state, submit, pending] = useActionState(action, initialExpenseState)
   const [open, setOpen] = useState(false)
 
@@ -113,7 +124,7 @@ export function PlanForm({
               type="number"
               min={1}
               max={31}
-              defaultValue={kind === 'income' ? 1 : 5}
+              defaultValue={kind === 'income' ? 1 : kind === 'savings' ? 2 : 5}
               className={styles.input}
               disabled={pending}
             />
@@ -121,7 +132,30 @@ export function PlanForm({
         )}
       </div>
 
-      {kind !== 'income' && (
+      {kind === 'savings' && (
+        <div className={styles.field}>
+          <label className={styles.label} htmlFor="savings-goal">
+            Pour quel objectif&nbsp;?
+          </label>
+          <select
+            id="savings-goal"
+            name="goal_id"
+            className={styles.select}
+            disabled={pending}
+          >
+            {/* Épargne libre en premier : c'est le cas le plus courant
+                quand on n'a pas encore d'objectif. */}
+            <option value="">Épargne libre, sans objectif</option>
+            {goals.map((goal) => (
+              <option key={goal.id} value={goal.id}>
+                {goal.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      {kind !== 'income' && kind !== 'savings' && (
         <div className={styles.field}>
           <label className={styles.label} htmlFor={`${kind}-cat`}>
             Catégorie

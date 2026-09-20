@@ -9,9 +9,9 @@ import { createClient } from '@/lib/supabase/server'
 import type { ExpenseState } from './state'
 
 /**
- * Revenus, charges fixes et dépenses prévues.
+ * Revenus, charges fixes, épargne mensuelle et dépenses prévues.
  *
- * Les deux premiers sont des règles : montant + jour du mois + bornes de
+ * Les trois premiers sont des règles : montant + jour du mois + bornes de
  * validité. On ne crée jamais une ligne par mois — une augmentation se
  * saisit en fermant l'ancienne règle et en ouvrant la nouvelle, ce qui
  * garde l'historique juste.
@@ -177,6 +177,62 @@ export async function settlePlanned(formData: FormData): Promise<void> {
 }
 
 // --- Suppressions -----------------------------------------------------
+
+// --- Épargne mensuelle ------------------------------------------------
+
+/**
+ * Ce qu'on met vraiment de côté chaque mois.
+ *
+ * Une règle de plus, du même genre qu'un revenu. `goal_id` vide = épargne
+ * libre : elle sort quand même de l'enveloppe, elle n'est simplement
+ * fléchée vers rien.
+ */
+export async function saveSavingsPlan(
+  _prev: ExpenseState,
+  formData: FormData,
+): Promise<ExpenseState> {
+  const user = await requireUser()
+  const id = String(formData.get('id') ?? '')
+  const label = String(formData.get('label') ?? '').trim().slice(0, 60)
+  const amount = readAmount(formData)
+  const goalId = String(formData.get('goal_id') ?? '') || null
+
+  if (!label) return { status: 'error', message: 'Donne un nom à ce virement.' }
+  if (amount === null) return { status: 'error', message: 'Entre un montant supérieur à zéro.' }
+
+  const row = {
+    label,
+    amount_cents: amount,
+    day_of_month: readDay(formData),
+    goal_id: goalId,
+  }
+
+  const supabase = await createClient()
+  const { error } = id
+    ? await supabase.from('savings_plans').update(row).eq('id', id)
+    : await supabase.from('savings_plans').insert({
+        ...row,
+        user_id: user.id,
+        starts_on: isoDay(startOfMonth(new Date())),
+      })
+
+  if (error) {
+    return {
+      status: 'error',
+      message:
+        error.code === 'PGRST205' || error.code === '42P01'
+          ? "La table de l'épargne n'existe pas encore : exécute migrations/006-epargne-mensuelle.sql."
+          : "Ce virement n'a pas pu être enregistré.",
+    }
+  }
+
+  revalidatePath('/budget', 'layout')
+  return { status: 'idle', message: '' }
+}
+
+export async function removeSavingsPlan(formData: FormData): Promise<void> {
+  await remove('savings_plans', formData)
+}
 
 export async function removeIncome(formData: FormData): Promise<void> {
   await remove('incomes', formData)
