@@ -161,10 +161,24 @@ export async function analyseScreenshots(
     return { status: 'error', message: result.message, json: '' }
   }
 
-  // On relit tout de suite : mieux vaut « rien de lisible » ici qu'un
-  // aperçu vide sans explication.
-  const { rows, error } = parseExpenseJson(result.text, known)
-  if (error || rows.length === 0) {
+  /*
+   * Une lecture par pièce : on les fusionne ici, en écartant les
+   * doublons. Deux captures qui se chevauchent — cas courant quand on
+   * fait défiler son relevé — donneraient sinon la même dépense deux
+   * fois.
+   */
+  const seen = new Set<string>()
+  const rows = result.texts
+    .flatMap((text) => parseExpenseJson(text, known).rows)
+    .filter((row) => {
+      const key = rowKey(row)
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+    .sort((a, b) => a.spentOn.localeCompare(b.spentOn))
+
+  if (rows.length === 0) {
     return {
       status: 'error',
       message: "Aucune dépense n'a pu être lue. Vérifie qu'on voit bien les montants et les dates.",
@@ -172,9 +186,16 @@ export async function analyseScreenshots(
     }
   }
 
-  return {
-    status: 'ok',
-    message: `${rows.length} dépense${rows.length > 1 ? 's' : ''} lue${rows.length > 1 ? 's' : ''}.`,
-    json: result.text,
+  const parts = [`${rows.length} dépense${rows.length > 1 ? 's' : ''} lue${rows.length > 1 ? 's' : ''}`]
+  if (result.failed > 0) {
+    parts.push(`${result.failed} pièce${result.failed > 1 ? 's' : ''} illisible${result.failed > 1 ? 's' : ''}`)
   }
+
+  // On reconstruit un JSON canonique : l'aperçu et l'enregistrement
+  // repassent par le même chemin que le collage manuel.
+  const json = JSON.stringify(
+    rows.map((r) => [r.spentOn, r.label, r.amountCents / 100, r.categoryName]),
+  )
+
+  return { status: 'ok', message: `${parts.join(' · ')}.`, json }
 }

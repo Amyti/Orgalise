@@ -397,6 +397,25 @@ coûtaient bien plus.
 `temperature: 0` : relever un relevé n'est pas un exercice de style, on
 veut la même réponse deux fois de suite.
 
+**Une requête par pièce, jamais un lot.** Envoyer six captures d'un coup
+paraissait économique — une invite, un aller-retour. Mais on demandait
+alors d'énumérer sans faute une centaine de lignes réparties sur
+plusieurs images, et le modèle en sautait. Découpée en tâches courtes,
+chacune tient dans son attention. Les requêtes partent en parallèle, donc
+sans latence supplémentaire, et le surcoût — l'invite répétée — vaut
+0,1 centime par import. Les lignes manquantes coûtaient plus cher.
+
+Les lectures sont fusionnées et dédoublonnées : deux captures qui se
+chevauchent, cas courant quand on fait défiler son relevé, donneraient
+sinon la même dépense deux fois.
+
+**Les captures partent en PNG, sans perte.** Un screenshot est un aplat
+de couleurs avec du texte fin ; le JPEG y produit du halo autour des
+caractères, et à dix pixels de haut un montant devient illisible. On a
+compressé en JPEG 0,8 pendant plusieurs versions, ce qui abîmait
+précisément ce qu'on demande au modèle de lire. Le coût ne bouge pas :
+une image est facturée à ses dimensions, jamais à son poids.
+
 **L'invite dit aussi ce qu'il ne faut PAS relever** — soldes, totaux,
 en-têtes, plafonds de carte. Ce sont des chiffres d'affichage ; en
 prendre un pour une dépense gonfle le total du mois entier. Le symptôme

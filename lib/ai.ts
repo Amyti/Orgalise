@@ -47,13 +47,27 @@ export const MAX_IMAGES = 6
 export type Piece = { kind: 'image' | 'pdf'; mediaType: string; base64: string }
 
 export type VisionResult =
-  | { ok: true; text: string }
+  | { ok: true; texts: string[]; failed: number }
   | { ok: false; message: string }
 
 export function hasAiKey(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY)
 }
 
+/**
+ * Fait lire chaque pièce par le modèle, **une requête par pièce**.
+ *
+ * Tout envoyer d'un coup semblait économique : une seule invite, un seul
+ * aller-retour. Sauf qu'on demandait alors au modèle d'énumérer sans
+ * faute une centaine de lignes réparties sur plusieurs images, et il en
+ * sautait. Découpée en tâches courtes, chacune tient dans son attention.
+ *
+ * Le surcoût est l'invite répétée, environ 280 jetons par pièce, soit
+ * une fraction de centime. Les lignes manquantes coûtaient plus cher.
+ *
+ * Les requêtes partent en parallèle : à trois captures, c'est aussi
+ * rapide qu'avant.
+ */
 export async function readReceipts(pieces: Piece[], prompt: string): Promise<VisionResult> {
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) {
@@ -63,17 +77,43 @@ export async function readReceipts(pieces: Piece[], prompt: string): Promise<Vis
     return { ok: false, message: 'Choisis au moins une capture ou un relevé.' }
   }
 
+  const results = await Promise.all(
+    pieces.map((piece, index) => readOne(key, piece, prompt, index, pieces.length)),
+  )
+
+  const texts = results.filter((r): r is string => r !== null)
+  if (texts.length === 0) {
+    return { ok: false, message: "Rien n'a pu être lu. Réessaie dans un instant." }
+  }
+
+  return { ok: true, texts, failed: results.length - texts.length }
+}
+
+/** Une pièce, une requête. `null` si celle-ci a échoué. */
+async function readOne(
+  key: string,
+  piece: Piece,
+  prompt: string,
+  index: number,
+  total: number,
+): Promise<string | null> {
+  // Situer la pièce évite qu'il croie devoir couvrir tout le relevé, et
+  // qu'il invente le reste ou s'arrête trop tôt.
+  const situation =
+    total > 1
+      ? `\n\nCeci est la pièce ${index + 1} sur ${total}. Relève uniquement ce qu'elle contient, en entier.`
+      : ''
+
   const content = [
-    ...pieces.map((p) => ({
-      type: (p.kind === 'pdf' ? 'document' : 'image') as 'document' | 'image',
-      source: { type: 'base64' as const, media_type: p.mediaType, data: p.base64 },
-    })),
-    { type: 'text' as const, text: prompt },
+    {
+      type: (piece.kind === 'pdf' ? 'document' : 'image') as 'document' | 'image',
+      source: { type: 'base64' as const, media_type: piece.mediaType, data: piece.base64 },
+    },
+    { type: 'text' as const, text: prompt + situation },
   ]
 
-  let response: Response
   try {
-    response = await fetch('https://api.anthropic.com/v1/messages', {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'content-type': 'application/json',
@@ -83,65 +123,29 @@ export async function readReceipts(pieces: Piece[], prompt: string): Promise<Vis
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        /*
-         * Relever un relevé n'est pas un exercice de style : on veut la
-         * même réponse deux fois de suite, et la lecture la plus probable
-         * plutôt qu'une lecture inventive.
-         */
+        // Relever un relevé n'est pas un exercice de style : on veut la
+        // même réponse deux fois de suite.
         temperature: 0,
-        /*
-         * Pas de préremplissage.
-         *
-         * On a d'abord commencé la réponse à sa place par « [ », pour
-         * qu'il n'ait aucun endroit où glisser « Voici les dépenses
-         * relevées : ». Ça marchait — et il omettait des lignes. Forcé
-         * d'émettre des données dès le premier jeton, il n'avait plus
-         * aucune marge pour parcourir l'image.
-         *
-         * Le même modèle appelé sans cette contrainte relève une
-         * soixantaine d'opérations là où il en rendait cinquante-six.
-         * `parseExpenseJson` sait désormais isoler le tableau au milieu
-         * d'un texte : la phrase d'introduction coûte quelques jetons et
-         * les lignes manquantes coûtaient bien plus.
-         */
         messages: [{ role: 'user', content }],
       }),
     })
-  } catch {
-    return { ok: false, message: "Le service de lecture n'a pas répondu. Réessaie." }
-  }
 
-  if (!response.ok) {
-    // 429 et 529 sont passagers ; le reste relève de la configuration.
-    const passager = response.status === 429 || response.status === 529
-    return {
-      ok: false,
-      message: passager
-        ? 'Le service de lecture est saturé. Réessaie dans un instant.'
-        : response.status === 400
-          // Un relevé protégé par mot de passe échoue ici, et le dire
-          // épargne de chercher du côté de la clé ou du réseau.
-          ? "Ce fichier n'a pas pu être lu. S'il s'agit d'un PDF protégé par mot de passe, enlève la protection d'abord."
-          : `La lecture a échoué (erreur ${response.status}).`,
+    if (!response.ok) {
+      console.error('[vision]', response.status, await response.text().catch(() => ''))
+      return null
     }
+
+    const payload = (await response.json()) as {
+      content?: { type: string; text?: string }[]
+    }
+    const text = (payload.content ?? [])
+      .filter((b) => b.type === 'text')
+      .map((b) => b.text ?? '')
+      .join('')
+
+    return text.trim() ? text : null
+  } catch (error) {
+    console.error('[vision]', error)
+    return null
   }
-
-  let payload: unknown
-  try {
-    payload = await response.json()
-  } catch {
-    return { ok: false, message: 'Réponse illisible du service de lecture.' }
-  }
-
-  const blocks = (payload as { content?: { type: string; text?: string }[] }).content ?? []
-  const text = blocks
-    .filter((b) => b.type === 'text')
-    .map((b) => b.text ?? '')
-    .join('')
-
-  if (!text.trim()) {
-    return { ok: false, message: "Rien n'a été lu dans ces fichiers." }
-  }
-
-  return { ok: true, text }
 }

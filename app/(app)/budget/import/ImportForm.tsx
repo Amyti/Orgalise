@@ -50,7 +50,24 @@ function asDataUrl(file: File): Promise<string> {
   })
 }
 
-/** Réduit et recompresse une image dans le navigateur, avant tout envoi. */
+/**
+ * Au-delà, l'envoi risque de dépasser la taille maximale d'une requête
+ * serveur. On repasse alors en JPEG très peu compressé.
+ */
+const MAX_PNG_CHARS = 900_000
+
+/**
+ * Réduit une image dans le navigateur, avant tout envoi.
+ *
+ * En PNG, sans perte. Une capture d'écran est un aplat de couleurs avec
+ * du texte fin : le JPEG y produit du halo autour des caractères, et à
+ * dix pixels de haut un montant devient illisible. On était en JPEG
+ * qualité 0,8, ce qui abîmait précisément ce qu'on demande au modèle de
+ * lire.
+ *
+ * Le coût ne bouge pas : une image est facturée à ses dimensions, jamais
+ * à son poids. Seule la taille de l'envoi augmente, d'où le repli.
+ */
 async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file)
   const ratio = Math.min(1, Math.sqrt(MAX_PIXELS / (bitmap.width * bitmap.height)))
@@ -59,7 +76,9 @@ async function shrink(file: File): Promise<string> {
   canvas.height = Math.round(bitmap.height * ratio)
   canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
-  return canvas.toDataURL('image/jpeg', 0.8)
+
+  const png = canvas.toDataURL('image/png')
+  return png.length <= MAX_PNG_CHARS ? png : canvas.toDataURL('image/jpeg', 0.95)
 }
 
 export function ImportForm({ known, aiReady, maxImages }: {
