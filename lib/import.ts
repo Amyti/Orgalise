@@ -61,6 +61,54 @@ function unwrap(raw: string): string {
   return (fenced ? fenced[1] : text).trim()
 }
 
+/**
+ * Isole le premier tableau ou objet JSON d'un texte qui en contient
+ * d'autres choses.
+ *
+ * Nécessaire depuis qu'on laisse le modèle s'exprimer avant de répondre :
+ * lui imposer de commencer par « [ » le privait de toute marge pour
+ * examiner l'image, et il omettait des lignes. Mieux vaut le laisser
+ * dire « Voici les 62 opérations relevées : » et savoir ignorer cette
+ * phrase.
+ *
+ * On compte les accolades en tenant compte des chaînes, sinon un
+ * libellé contenant « ] » couperait le tableau au mauvais endroit.
+ */
+function carve(text: string): string {
+  const start = text.search(/[[{]/)
+  if (start === -1) return text
+
+  const opening = text[start]
+  const closing = opening === '[' ? ']' : '}'
+  let depth = 0
+  let inString = false
+  let escaped = false
+
+  for (let i = start; i < text.length; i++) {
+    const c = text[i]
+    if (escaped) {
+      escaped = false
+      continue
+    }
+    if (c === '\\') {
+      escaped = true
+      continue
+    }
+    if (c === '"') {
+      inString = !inString
+      continue
+    }
+    if (inString) continue
+
+    if (c === opening) depth++
+    else if (c === closing) {
+      depth--
+      if (depth === 0) return text.slice(start, i + 1)
+    }
+  }
+  return text.slice(start)
+}
+
 /** Premier champ dont le nom figure parmi les alias attendus. */
 function field(row: Record<string, unknown>, aliases: string[]): unknown {
   for (const key of Object.keys(row)) {
@@ -173,7 +221,12 @@ export function parseExpenseJson(raw: string, known: string[]): ImportResult {
   try {
     parsed = JSON.parse(text)
   } catch {
-    return { ...EMPTY, error: "Ce n'est pas du JSON valide. Recopie la réponse entière, accolades comprises." }
+    // Deuxième chance : le JSON est peut-être noyé dans du texte.
+    try {
+      parsed = JSON.parse(carve(text))
+    } catch {
+      return { ...EMPTY, error: "Ce n'est pas du JSON valide. Recopie la réponse entière, accolades comprises." }
+    }
   }
 
   const list = rowsOf(parsed)
@@ -303,9 +356,18 @@ export function promptFor(known: string[]): string {
     'Uniquement des dépenses : ignore les virements reçus, les salaires et',
     'les remboursements. Montants positifs, en euros.',
     '',
-    'IMPORTANT : sois exhaustif. Parcours chaque image de haut en bas et',
-    'relève TOUTES les lignes, sans exception, y compris les petits',
-    "montants et les lignes qui se ressemblent. N'abrège pas, ne résume",
-    'pas, ne saute aucune opération même répétée.',
+    'Ne relève QUE les lignes de la liste des opérations. Ignore les',
+    'soldes, les totaux, les en-têtes, les plafonds de carte et les',
+    "encadrés de résumé : ce sont des chiffres d'affichage, pas des",
+    'dépenses. En prendre un gonfle le total de tout le mois.',
+    '',
+    'Sois exhaustif. Parcours chaque image de haut en bas et relève',
+    'TOUTES les lignes, y compris les petits montants et celles qui se',
+    "ressemblent. N'abrège pas, ne résume pas, ne saute aucune opération",
+    'même répétée. Recopie les montants exactement comme ils sont',
+    "affichés, sans rien arrondir ni recalculer.",
+    '',
+    'Tu peux examiner les images avant de répondre. Termine par le',
+    'tableau JSON, seul, sans commentaire après lui.',
   ].join('\n')
 }

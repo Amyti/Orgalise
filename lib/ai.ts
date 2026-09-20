@@ -83,16 +83,28 @@ export async function readReceipts(pieces: Piece[], prompt: string): Promise<Vis
       body: JSON.stringify({
         model: MODEL,
         max_tokens: MAX_TOKENS,
-        messages: [
-          { role: 'user', content },
-          /*
-           * On commence la réponse à sa place par un crochet ouvrant.
-           * Le modèle n'a plus d'endroit où glisser « Voici les dépenses
-           * que j'ai relevées : » — il poursuit le tableau, un point
-           * c'est tout.
-           */
-          { role: 'assistant', content: '[' },
-        ],
+        /*
+         * Relever un relevé n'est pas un exercice de style : on veut la
+         * même réponse deux fois de suite, et la lecture la plus probable
+         * plutôt qu'une lecture inventive.
+         */
+        temperature: 0,
+        /*
+         * Pas de préremplissage.
+         *
+         * On a d'abord commencé la réponse à sa place par « [ », pour
+         * qu'il n'ait aucun endroit où glisser « Voici les dépenses
+         * relevées : ». Ça marchait — et il omettait des lignes. Forcé
+         * d'émettre des données dès le premier jeton, il n'avait plus
+         * aucune marge pour parcourir l'image.
+         *
+         * Le même modèle appelé sans cette contrainte relève une
+         * soixantaine d'opérations là où il en rendait cinquante-six.
+         * `parseExpenseJson` sait désormais isoler le tableau au milieu
+         * d'un texte : la phrase d'introduction coûte quelques jetons et
+         * les lignes manquantes coûtaient bien plus.
+         */
+        messages: [{ role: 'user', content }],
       }),
     })
   } catch {
@@ -131,6 +143,5 @@ export async function readReceipts(pieces: Piece[], prompt: string): Promise<Vis
     return { ok: false, message: "Rien n'a été lu dans ces fichiers." }
   }
 
-  // Le crochet qu'on a écrit nous-même ne revient pas dans la réponse.
-  return { ok: true, text: `[${text}` }
+  return { ok: true, text }
 }

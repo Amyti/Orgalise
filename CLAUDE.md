@@ -381,9 +381,27 @@ récupère du JSON. Ce JSON repart dans le même aperçu que celui qu'on
 collait à la main : l'IA remplit l'étape, elle ne raccourcit pas le
 contrôle. Sans clé, l'écran retombe sur le collage manuel.
 
-La réponse du modèle est forcée à commencer par `[` — on écrit ce
-crochet à sa place dans le tour assistant. Il n'a plus d'endroit où
-glisser « Voici les dépenses que j'ai relevées : ».
+**Le modèle n'est pas bâillonné.** On a d'abord prérempli sa réponse
+avec un `[` pour lui interdire toute phrase d'introduction. Ça
+fonctionnait, et il omettait des lignes : forcé d'émettre des données dès
+le premier jeton, il n'avait plus aucune marge pour parcourir l'image. Le
+même modèle appelé sans cette contrainte relevait une soixantaine
+d'opérations là où il en rendait cinquante-six.
+
+`parseExpenseJson` isole donc le premier tableau JSON au milieu d'un
+texte, en comptant les crochets et en tenant compte des chaînes — un
+libellé contenant `]` couperait sinon le tableau au mauvais endroit. La
+phrase d'introduction coûte quelques jetons ; les lignes manquantes
+coûtaient bien plus.
+
+`temperature: 0` : relever un relevé n'est pas un exercice de style, on
+veut la même réponse deux fois de suite.
+
+**L'invite dit aussi ce qu'il ne faut PAS relever** — soldes, totaux,
+en-têtes, plafonds de carte. Ce sont des chiffres d'affichage ; en
+prendre un pour une dépense gonfle le total du mois entier. Le symptôme
+est reconnaissable : moins de lignes que la réalité, mais un total plus
+élevé.
 
 **Ce qui coûte cher, et ce qui n'en a pas l'air.** Les jetons de sortie
 valent cinq fois ceux d'entrée. D'où deux choix qui pourraient sembler

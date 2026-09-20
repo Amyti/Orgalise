@@ -342,6 +342,21 @@ check('compact tronqué → refusé', lire('[["Carrefour"]]').rejects[0].reason,
 check('objets et tableaux mêlés', lire('[["2026-09-14","a",1,"Courses"],{"date":"2026-09-15","libelle":"b","montant":2}]').rows.length, 2)
 
 check('montant nul écarté', lire('[{"date":"2026-09-14","libelle":"x","montant":0}]').rejects[0].reason, 'montant nul')
+// Le modèle n'est plus bâillonné par un préremplissage : il peut
+// introduire sa réponse, et on doit savoir isoler le tableau.
+check('préambule ignoré',
+  lire('Voici les 2 opérations relevées :\n[["2026-09-14","a",3],["2026-09-15","b",4]]').rows.length, 2)
+check('préambule et conclusion',
+  lire('J\'ai trouvé ceci :\n[["2026-09-14","a",3]]\nDis-moi si besoin.').rows.length, 1)
+// Un libellé contenant un crochet ne doit pas couper le tableau.
+check('crochet dans un libellé',
+  lire('Réponse : [["2026-09-14","Café [gare]",3],["2026-09-15","b",4]]').rows.length, 2)
+check('libellé avec crochet préservé',
+  lire('Réponse : [["2026-09-14","Café [gare]",3]]').rows[0].label, 'Café [gare]')
+// Un objet enveloppant noyé dans du texte se retrouve aussi.
+check('objet enveloppant précédé de texte',
+  lire('Voilà : {"depenses":[["2026-09-14","a",3]]}').rows.length, 1)
+
 check('texte libre refusé', lire('bonjour').error !== null, true)
 check('liste vide signalée', lire('[]').error, 'La liste est vide.')
 check('vide → rien, sans erreur', lire('   '), { rows: [], rejects: [], error: null })
