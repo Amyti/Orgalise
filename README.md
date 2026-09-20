@@ -26,6 +26,22 @@ Sans les clés, l'écran de connexion s'affiche quand même et indique ce qu'il 
 
 Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 
+### Lecture des captures bancaires (facultatif)
+
+`/budget/import` fait lire des captures d'écran par un modèle de vision.
+Sans clé, l'écran retombe sur le collage d'un JSON préparé ailleurs — il
+reste utilisable, il est juste moins direct.
+
+```
+ANTHROPIC_API_KEY=sk-ant-…
+```
+
+En local dans `.env.local`, en production dans Vercel → Settings →
+Environment Variables. La clé ne quitte jamais le serveur : les images
+montent vers une action serveur qui appelle l'API et ne renvoie que du
+texte. Ce texte repasse par `parseExpenseJson` avant toute écriture — le
+modèle ne décide jamais de ce qui entre en base.
+
 ## Écrans
 
 | Route | Maquette | Rôle |
@@ -42,7 +58,7 @@ Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 | `/budget/plan` | — | revenus, charges fixes, dépenses prévues |
 | `/budget/ajout` | `Ajout` | montant + pavé numérique custom + 8 catégories |
 | `/budget/tableau` | `Tableau` | recherche, filtres, sous-totaux par jour, export CSV |
-| `/budget/import` | — | coller un JSON de dépenses relu par une IA |
+| `/budget/import` | — | captures d'écran bancaires lues par un modèle de vision |
 | `/nous` | `Espace` | membres, prénoms, calendriers branchés, déconnexion |
 
 Navigation basse unifiée à quatre entrées : **Accueil · Agenda · Budget · Nous**.

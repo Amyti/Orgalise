@@ -3,12 +3,19 @@ import Link from 'next/link'
 
 import { NavSpacer } from '@/components/Fab'
 import { ChevronLeftIcon } from '@/components/Icons'
+import { MAX_IMAGES, hasAiKey } from '@/lib/ai'
 import { requireBudget } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
 import { ImportForm } from './ImportForm'
 import styles from './import.module.css'
 
 export const metadata: Metadata = { title: 'Importer des dépenses' }
+
+/*
+ * Lire six captures prend une dizaine de secondes. Le plafond par défaut
+ * d'une fonction Vercel couperait l'appel en plein milieu.
+ */
+export const maxDuration = 60
 
 export default async function ImportPage() {
   await requireBudget()
@@ -34,13 +41,12 @@ export default async function ImportPage() {
       <div className={styles.titleZone}>
         <h1 className={`display ${styles.title}`}>Importer des dépenses</h1>
         <p className={styles.lede}>
-          Fais relire tes captures d'écran bancaires par une IA, puis colle
-          sa réponse ici. Rien n'est enregistré avant que tu aies vu ce qui
-          sera ajouté.
+          Choisis les captures de ton appli bancaire, l'app en tire tes
+          dépenses. Rien n'est enregistré avant que tu aies vu la liste.
         </p>
       </div>
 
-      <ImportForm known={known} />
+      <ImportForm known={known} aiReady={hasAiKey()} maxImages={MAX_IMAGES} />
       <NavSpacer />
     </div>
   )

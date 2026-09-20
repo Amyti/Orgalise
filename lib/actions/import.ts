@@ -2,10 +2,11 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { parseExpenseJson, rowKey } from '@/lib/import'
-import { requireUser } from '@/lib/space'
+import { MAX_IMAGES, readReceipts, type Shot } from '@/lib/ai'
+import { parseExpenseJson, promptFor, rowKey } from '@/lib/import'
+import { requireBudget, requireUser } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
-import type { ImportState } from './state'
+import type { AnalyseState, ImportState } from './state'
 
 /**
  * Ajoute les dépenses d'un JSON relu par une IA.
@@ -107,5 +108,62 @@ export async function importExpenses(
     message: `${parts.join(' · ')}.`,
     added: fresh.length,
     skipped,
+  }
+}
+
+/** `data:image/jpeg;base64,AAA…` → les deux morceaux dont l'API a besoin. */
+function readDataUrl(value: string): Shot | null {
+  const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(value)
+  return m ? { mediaType: m[1], base64: m[2] } : null
+}
+
+/**
+ * Fait lire les captures par le modèle et renvoie son JSON.
+ *
+ * N'écrit rien : la réponse repart vers l'aperçu, et c'est
+ * `importExpenses` qui enregistre, après validation humaine. Ce
+ * découpage tient à ce qu'un modèle se trompe — sur un montant, sur une
+ * date — et qu'une dépense fausse vaut moins qu'une dépense absente.
+ */
+export async function analyseScreenshots(
+  _prev: AnalyseState,
+  formData: FormData,
+): Promise<AnalyseState> {
+  await requireBudget()
+
+  const shots = formData
+    .getAll('shot')
+    .map((v) => readDataUrl(String(v)))
+    .filter((s): s is Shot => s !== null)
+    .slice(0, MAX_IMAGES)
+
+  if (shots.length === 0) {
+    return { status: 'error', message: 'Choisis au moins une capture.', json: '' }
+  }
+
+  const supabase = await createClient()
+  const { data: categories } = await supabase.from('categories').select('name')
+  const known = (categories ?? []).map((c) => c.name as string)
+
+  const result = await readReceipts(shots, promptFor(known))
+  if (!result.ok) {
+    return { status: 'error', message: result.message, json: '' }
+  }
+
+  // On relit tout de suite : mieux vaut « rien de lisible » ici qu'un
+  // aperçu vide sans explication.
+  const { rows, error } = parseExpenseJson(result.text, known)
+  if (error || rows.length === 0) {
+    return {
+      status: 'error',
+      message: "Aucune dépense n'a pu être lue sur ces captures. Vérifie qu'on y voit les montants et les dates.",
+      json: '',
+    }
+  }
+
+  return {
+    status: 'ok',
+    message: `${rows.length} dépense${rows.length > 1 ? 's' : ''} lue${rows.length > 1 ? 's' : ''}.`,
+    json: result.text,
   }
 }

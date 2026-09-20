@@ -19,6 +19,14 @@ const nextConfig: NextConfig = {
      * un agenda de couple, et toute saisie appelle `revalidatePath`, qui
      * vide ce cache immédiatement.
      */
+    /*
+     * Les captures d'écran partent en base64 dans une action serveur.
+     * La limite par défaut est de 1 Mo, six images réduites en font
+     * quelques-uns.
+     */
+    serverActions: {
+      bodySizeLimit: '8mb',
+    },
     staleTimes: {
       dynamic: 30,
       static: 180,

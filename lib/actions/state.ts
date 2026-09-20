@@ -48,3 +48,15 @@ export const initialImportState: ImportState = {
   added: 0,
   skipped: 0,
 }
+
+/**
+ * Lecture des captures par le modèle. Le JSON produit rejoint le même
+ * aperçu que celui qu'on collait à la main : l'IA remplit l'étape,
+ * elle ne raccourcit pas le contrôle.
+ */
+export type AnalyseState = {
+  status: 'idle' | 'error' | 'ok'
+  message: string
+  json: string
+}
+export const initialAnalyseState: AnalyseState = { status: 'idle', message: '', json: '' }

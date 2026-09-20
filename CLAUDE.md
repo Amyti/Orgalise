@@ -205,7 +205,7 @@ markup, les couleurs et les dimensions exactes y sont).
 | `Ajout` | saisie : montant en gros + pavé numérique custom + 8 catégories |
 | `Tableau` | recherche, filtres, lignes groupées par jour avec sous-totaux, export CSV |
 | *(sans maquette)* | `/budget/plan` — revenus, charges fixes, dépenses prévues |
-| *(sans maquette)* | `/budget/import` — coller un JSON de dépenses relu par une IA |
+| *(sans maquette)* | `/budget/import` — captures d'écran bancaires lues par un modèle |
 
 Navigation basse, **adaptée aux outils activés** :
 les deux → **Accueil · Agenda · Budget · Nous** ;
@@ -280,9 +280,20 @@ Sans revenu saisi, l'écran retombe sur l'ancien plafond manuel
 
 ### L'import de dépenses
 
-On photographie son relevé bancaire, une IA en tire du JSON, on le colle
-dans `/budget/import`. L'entrée est dans les réglages ; l'écran affiche
-ce qui sera ajouté avant d'écrire quoi que ce soit.
+On choisit ses captures d'écran bancaires dans sa pellicule, l'app en
+tire les dépenses et les montre avant d'écrire quoi que ce soit.
+L'entrée est dans les réglages.
+
+Le chemin complet : les images sont réduites **dans le navigateur**
+(1400 px de côté, JPEG), montent vers une action serveur, qui appelle
+l'API Anthropic (`ANTHROPIC_API_KEY`, jamais exposée au client) et
+récupère du JSON. Ce JSON repart dans le même aperçu que celui qu'on
+collait à la main : l'IA remplit l'étape, elle ne raccourcit pas le
+contrôle. Sans clé, l'écran retombe sur le collage manuel.
+
+La réponse du modèle est forcée à commencer par `[` — on écrit ce
+crochet à sa place dans le tour assistant. Il n'a plus d'endroit où
+glisser « Voici les dépenses que j'ai relevées : ».
 
 `lib/import.ts` fait la lecture, à part de React et de la base, donc
 testable — une trentaine d'assertions dans `tests/logique.ts`. Le texte

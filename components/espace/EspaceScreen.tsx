@@ -252,11 +252,11 @@ export function EspaceScreen({ space, feeds, mode, displayName, modules }: Props
                 <h2 className="sectionTitle">Importer des dépenses</h2>
               </div>
               <Link href="/budget/import" className={styles.toggleLink}>
-                Coller un JSON de dépenses
+                Depuis des captures d'écran
               </Link>
               <p className={styles.hint}>
-                Fais relire tes captures d'écran bancaires par une IA, colle sa
-                réponse, et tout est enregistré d'un coup.
+                Choisis les captures de ton appli bancaire, l'app en tire tes
+                dépenses et te les montre avant de les enregistrer.
               </p>
             </section>
           )}
