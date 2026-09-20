@@ -108,12 +108,15 @@ export function forecastMonth(
   /** Les virements d'épargne déclarés, projetés comme les charges fixes. */
   savings: SavingsRule[] = [],
   /*
-   * Ce que les objectifs SANS règle déclarée retiennent d'office,
-   * calculé par `heldCents` dans `lib/goals.ts`. Le passer en nombre
-   * plutôt qu'en liste garde ce module ignorant des objectifs : il ne
-   * connaît qu'une somme qui sort de l'enveloppe.
+   * Ce que l'épargne retire de l'enveloppe en plus des règles ci-dessus :
+   * la retenue d'office des objectifs sans virement déclaré (`heldCents`)
+   * et les versements ponctuels pris sur le budget du mois
+   * (`entriesHeldCents`), tous deux calculés dans `lib/goals.ts`.
+   *
+   * Le passer en nombre plutôt qu'en listes garde ce module ignorant des
+   * objectifs : il ne connaît qu'une somme qui sort de l'enveloppe.
    */
-  autoHoldCents = 0,
+  extraSavingsCents = 0,
 ): MonthForecast {
   const start = startOfMonth(month)
 
@@ -170,7 +173,7 @@ export function forecastMonth(
   const fixedCents = sum(fixedOcc)
   const plannedPendingCents = sum(plannedOcc.filter((p) => !p.settled))
   const declaredSavingsCents = sum(savingsOcc)
-  const savingsCents = declaredSavingsCents + autoHoldCents
+  const savingsCents = declaredSavingsCents + extraSavingsCents
 
   return {
     month: start,

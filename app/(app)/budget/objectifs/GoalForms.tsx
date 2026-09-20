@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 
-import { addGoal, setSaved } from '@/lib/actions/goals'
+import { addEntry, addGoal, setSaved } from '@/lib/actions/goals'
 import { initialEspaceState } from '@/lib/actions/state'
 import styles from './objectifs.module.css'
 
@@ -56,6 +56,98 @@ export function SavedForm({ id, current }: { id: string; current: number }) {
         {pending ? '…' : 'Enregistrer'}
       </button>
       <Feedback state={state} />
+    </form>
+  )
+}
+
+/**
+ * Un versement ponctuel : prime, cadeau, remboursement.
+ *
+ * La case « pris sur mon budget du mois » est décochée par défaut,
+ * parce que le cas qui motive ce formulaire est l'argent venu
+ * d'ailleurs. Une prime n'a jamais transité par l'enveloppe, elle n'a
+ * donc pas à en sortir — la cocher à tort ferait plonger le reste à
+ * vivre un mois où l'on a, au contraire, reçu de l'argent.
+ */
+export function EntryForm({ goalId }: { goalId: string }) {
+  const [state, action, pending] = useActionState(addEntry, initialEspaceState)
+  const [open, setOpen] = useState(false)
+
+  if (!open) {
+    return (
+      <button type="button" className={styles.linkButton} onClick={() => setOpen(true)}>
+        Ajouter un versement
+      </button>
+    )
+  }
+
+  return (
+    <form action={action} className={styles.entryForm}>
+      <input type="hidden" name="goal_id" value={goalId} />
+
+      <label className="srOnly" htmlFor={`entry-label-${goalId}`}>
+        Origine du versement
+      </label>
+      <input
+        id={`entry-label-${goalId}`}
+        name="label"
+        type="text"
+        className={styles.input}
+        placeholder="Prime, cadeau, remboursement…"
+        maxLength={60}
+        disabled={pending}
+      />
+
+      <div className={styles.pair}>
+        <div>
+          <label className={styles.fieldLabel} htmlFor={`entry-amount-${goalId}`}>
+            Montant
+          </label>
+          <input
+            id={`entry-amount-${goalId}`}
+            name="amount"
+            type="text"
+            inputMode="decimal"
+            className={styles.input}
+            placeholder="0,00"
+            required
+            disabled={pending}
+          />
+        </div>
+        <div>
+          <label className={styles.fieldLabel} htmlFor={`entry-date-${goalId}`}>
+            Date
+          </label>
+          <input
+            id={`entry-date-${goalId}`}
+            name="on_date"
+            type="date"
+            className={styles.input}
+            disabled={pending}
+          />
+        </div>
+      </div>
+
+      <label className={styles.hold}>
+        <input type="checkbox" name="from_envelope" className={styles.checkbox} />
+        Pris sur mon budget du mois
+      </label>
+
+      <Feedback state={state} />
+
+      <div className={styles.inline}>
+        <button type="submit" className={styles.smallButton} disabled={pending}>
+          {pending ? '…' : 'Enregistrer'}
+        </button>
+        <button
+          type="button"
+          className={styles.linkButton}
+          onClick={() => setOpen(false)}
+          disabled={pending}
+        >
+          Annuler
+        </button>
+      </div>
     </form>
   )
 }

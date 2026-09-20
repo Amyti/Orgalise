@@ -337,6 +337,30 @@ cette phrase-là qui fait agir, pas une barre à 40 %.
 Un objectif sans virement déclaré retombe sur la retenue d'office, si sa
 case est cochée.
 
+**Une prime, un cadeau, un remboursement** se saisissent comme des
+versements ponctuels (`savings_entries`), depuis la fiche de l'objectif.
+Deux origines, deux comportements :
+
+- **venue d'ailleurs** (le cas par défaut) : l'argent n'était pas dans le
+  budget du mois, il n'en sort donc pas. Neutre sur le reste à vivre —
+  le compter ferait plonger un mois où l'on a, au contraire, reçu de
+  l'argent.
+- **prise sur le mois** : un virement en plus depuis l'argent courant,
+  qui ponctionne l'enveloppe comme une charge.
+
+Le total épargné reste porté par `saved_cents`, qu'on recopie de son
+livret ; un versement l'incrémente. Ces lignes sont l'historique, pas la
+source de vérité — sinon saisir un versement *et* recopier son solde
+compterait deux fois. L'incrément passe par la fonction SQL
+`add_savings_entry` : deux membres saisissant au même instant sur un
+objectif commun s'écraseraient autrement.
+
+**Les migrations rejouent sans erreur.** `create policy` n'accepte pas
+`if not exists` : chaque policy est donc précédée de son `drop policy if
+exists`. Supabase affiche un avertissement à cause du mot `drop` — il ne
+porte que sur des règles d'accès, aussitôt recréées, jamais sur des
+données.
+
 ### L'import de dépenses
 
 On choisit son relevé mensuel en PDF — ou, à défaut, des captures

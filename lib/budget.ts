@@ -3,7 +3,7 @@ import type { FixedCharge, Income, PlannedExpense, SavingsRule } from './forecas
 import { createClient } from './supabase/server'
 import { withPaletteColors } from './categories'
 import type { Budget, Category, Expense } from './types'
-import type { Goal } from './goals'
+import type { Goal, SavingsEntry } from './goals'
 
 /**
  * Budget personnel.
@@ -128,7 +128,8 @@ export async function loadDashboard(date: Date) {
   const next = addMonths(month, 1)
   const trendFrom = addMonths(month, -5)
 
-  const [budget, incomes, fixed, planned, history, goals, savings] = await Promise.all([
+  const [budget, incomes, fixed, planned, history, goals, savings, entries] =
+    await Promise.all([
     loadMonth(month),
     supabase
       .from('incomes')
@@ -159,6 +160,11 @@ export async function loadDashboard(date: Date) {
       .from('savings_plans')
       .select('id, goal_id, label, amount_cents, day_of_month, starts_on, ends_on')
       .order('day_of_month'),
+    supabase
+      .from('savings_entries')
+      .select('id, goal_id, label, amount_cents, on_date, from_envelope')
+      .gte('on_date', isoDay(month))
+      .lt('on_date', isoDay(next)),
   ])
 
   return {
@@ -171,6 +177,7 @@ export async function loadDashboard(date: Date) {
     // fonctionne sans, il ne montre simplement aucun objectif.
     goals: (goals.data ?? []) as Goal[],
     savings: (savings.data ?? []) as SavingsRule[],
+    entries: (entries.data ?? []) as SavingsEntry[],
   }
 }
 

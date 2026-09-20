@@ -3,14 +3,14 @@ import Link from 'next/link'
 
 import { NavSpacer } from '@/components/Fab'
 import { ChevronLeftIcon, TrashIcon } from '@/components/Icons'
-import { removeGoal, toggleHold } from '@/lib/actions/goals'
+import { removeEntry, removeGoal, toggleHold } from '@/lib/actions/goals'
 import { shortDate } from '@/lib/dates'
-import { declaredByGoal, statusOf, type Goal } from '@/lib/goals'
+import { declaredByGoal, statusOf, type Goal, type SavingsEntry } from '@/lib/goals'
 import type { SavingsRule } from '@/lib/forecast'
 import { euros, roundedEuros } from '@/lib/money'
 import { currentSpace, requireBudget, requireUser } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
-import { AddGoalForm, SavedForm } from './GoalForms'
+import { AddGoalForm, EntryForm, SavedForm } from './GoalForms'
 import styles from './objectifs.module.css'
 
 export const metadata: Metadata = { title: 'Objectifs' }
@@ -20,13 +20,17 @@ export default async function ObjectifsPage() {
   const user = await requireUser()
   const supabase = await createClient()
 
-  const [{ data, error }, space, plansQ] = await Promise.all([
+  const [{ data, error }, space, plansQ, entriesQ] = await Promise.all([
     supabase
       .from('savings_goals')
       .select('id, user_id, group_id, label, target_cents, saved_cents, target_on, hold_in_budget')
       .order('target_on'),
     currentSpace(),
     supabase.from('savings_plans').select('id, goal_id, label, amount_cents, day_of_month, starts_on, ends_on'),
+    supabase
+      .from('savings_entries')
+      .select('id, goal_id, label, amount_cents, on_date, from_envelope')
+      .order('on_date', { ascending: false }),
   ])
 
   // Tant que migrations/005 n'a pas été exécutée, la table n'existe pas.
@@ -34,6 +38,7 @@ export default async function ObjectifsPage() {
   const missing = error?.code === 'PGRST205' || error?.code === '42P01'
   const goals = (data ?? []) as Goal[]
   const declared = declaredByGoal((plansQ.data ?? []) as SavingsRule[])
+  const entries = (entriesQ.data ?? []) as SavingsEntry[]
   const now = new Date()
   const statuses = goals.map((g) => statusOf(g, now, declared.get(g.id) ?? 0))
 
@@ -139,6 +144,38 @@ export default async function ObjectifsPage() {
               )}
             </div>
 
+            {(() => {
+              const mine = entries.filter((e) => e.goal_id === s.goal.id)
+              if (mine.length === 0) return null
+              return (
+                <div className={styles.entries}>
+                  {mine.map((entry) => (
+                    <div key={entry.id} className={styles.entry}>
+                      <div className={styles.entryMain}>
+                        <span className={styles.entryLabel}>{entry.label}</span>
+                        <span className={styles.entryMeta}>
+                          {shortDate(new Date(`${entry.on_date}T12:00:00Z`))}
+                          {entry.from_envelope ? ' · pris sur le mois' : ' · rentrée exceptionnelle'}
+                        </span>
+                      </div>
+                      <span className={styles.entryAmount}>+{euros(entry.amount_cents)}</span>
+                      <form action={removeEntry}>
+                        <input type="hidden" name="id" value={entry.id} />
+                        <button
+                          type="submit"
+                          className={styles.iconButton}
+                          aria-label={`Retirer ${entry.label}`}
+                        >
+                          <TrashIcon size={14} color="var(--ink-soft)" />
+                        </button>
+                      </form>
+                    </div>
+                  ))}
+                </div>
+              )
+            })()}
+
+            <EntryForm goalId={s.goal.id} />
             <SavedForm id={s.goal.id} current={s.goal.saved_cents} />
 
             {!s.done && !s.late && (

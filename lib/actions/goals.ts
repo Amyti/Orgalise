@@ -118,3 +118,62 @@ export async function removeGoal(formData: FormData): Promise<void> {
 function missingTable(code: string | undefined): boolean {
   return code === 'PGRST205' || code === '42P01'
 }
+
+/**
+ * Enregistre un versement ponctuel : prime, cadeau, remboursement.
+ *
+ * Passe par la fonction SQL plutôt que par deux écritures : insérer la
+ * ligne puis relire le total pour le réécrire perdrait un versement si
+ * les deux membres d'un espace en saisissaient un au même instant sur un
+ * objectif commun.
+ */
+export async function addEntry(
+  _prev: EspaceState,
+  formData: FormData,
+): Promise<EspaceState> {
+  await requireBudget()
+
+  const goalId = String(formData.get('goal_id') ?? '')
+  const amount = parseCents(String(formData.get('amount') ?? ''))
+  const label = String(formData.get('label') ?? '').trim().slice(0, 60) || 'Versement'
+  const on = String(formData.get('on_date') ?? '')
+  const fromEnvelope = formData.get('from_envelope') === 'on'
+
+  if (!goalId) return { status: 'error', message: 'Objectif introuvable.' }
+  if (amount === null || amount <= 0) {
+    return { status: 'error', message: 'Entre un montant supérieur à zéro.' }
+  }
+  if (on && !parseIsoDay(on)) {
+    return { status: 'error', message: "La date n'est pas valide." }
+  }
+
+  const supabase = await createClient()
+  const { error } = await supabase.rpc('add_savings_entry', {
+    gid: goalId,
+    amount,
+    lbl: label,
+    on_day: on || null,
+    from_env: fromEnvelope,
+  })
+
+  if (error) {
+    return {
+      status: 'error',
+      message: missingTable(error.code)
+        ? "La table des versements n'existe pas encore : exécute migrations/007-versements.sql."
+        : "Le versement n'a pas pu être enregistré.",
+    }
+  }
+
+  revalidatePath('/', 'layout')
+  return { status: 'ok', message: 'Versement enregistré.' }
+}
+
+/** Retire un versement et défait son effet sur le total épargné. */
+export async function removeEntry(formData: FormData): Promise<void> {
+  const id = String(formData.get('id') ?? '')
+  if (!id) return
+  const supabase = await createClient()
+  await supabase.rpc('remove_savings_entry', { eid: id })
+  revalidatePath('/', 'layout')
+}

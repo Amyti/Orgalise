@@ -46,6 +46,7 @@ create index if not exists savings_goals_group_idx on public.savings_goals (grou
 alter table public.savings_goals enable row level security;
 
 -- Le sien, plus ceux partagés dans son espace.
+drop policy if exists "voir ses objectifs" on public.savings_goals;
 create policy "voir ses objectifs" on public.savings_goals for select
   using (
     user_id = auth.uid()
@@ -53,6 +54,7 @@ create policy "voir ses objectifs" on public.savings_goals for select
   );
 
 -- On crée pour soi. Partager exige d'être membre de l'espace visé.
+drop policy if exists "créer un objectif" on public.savings_goals;
 create policy "créer un objectif" on public.savings_goals for insert
   with check (
     user_id = auth.uid()
@@ -60,6 +62,7 @@ create policy "créer un objectif" on public.savings_goals for insert
   );
 
 -- Les deux membres mettent à jour un objectif commun : c'est le but.
+drop policy if exists "modifier un objectif" on public.savings_goals;
 create policy "modifier un objectif" on public.savings_goals for update
   using (
     user_id = auth.uid()
@@ -71,5 +74,6 @@ create policy "modifier un objectif" on public.savings_goals for update
   );
 
 -- Supprimer reste au créateur : on n'efface pas l'objectif de l'autre.
+drop policy if exists "supprimer son objectif" on public.savings_goals;
 create policy "supprimer son objectif" on public.savings_goals for delete
   using (user_id = auth.uid());

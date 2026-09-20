@@ -44,14 +44,18 @@ create index if not exists savings_plans_goal_idx on public.savings_plans (goal_
 
 alter table public.savings_plans enable row level security;
 
+drop policy if exists "voir son épargne" on public.savings_plans;
 create policy "voir son épargne" on public.savings_plans for select
   using (user_id = auth.uid());
 
+drop policy if exists "ajouter son épargne" on public.savings_plans;
 create policy "ajouter son épargne" on public.savings_plans for insert
   with check (user_id = auth.uid());
 
+drop policy if exists "modifier son épargne" on public.savings_plans;
 create policy "modifier son épargne" on public.savings_plans for update
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "supprimer son épargne" on public.savings_plans;
 create policy "supprimer son épargne" on public.savings_plans for delete
   using (user_id = auth.uid());

@@ -21,7 +21,7 @@ import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
 import { parseExpenseJson, rowKey, totalCents, MAX_ROWS } from '../lib/import'
-import { declaredByGoal, heldCents, monthsBetween, statusOf, type Goal } from '../lib/goals'
+import { declaredByGoal, entriesHeldCents, heldCents, monthsBetween, statusOf, type Goal, type SavingsEntry } from '../lib/goals'
 import type { SavingsRule } from '../lib/forecast'
 
 let failures = 0
@@ -430,6 +430,32 @@ const totaux = declaredByGoal([
 check('versements cumulés par objectif', totaux.get('g1'), 40_000)
 check('épargne libre sous la clé nulle', totaux.get(null), 5_000)
 check('aucune règle → aucune entrée', declaredByGoal([]).size, 0)
+
+// --- Versements ponctuels --------------------------------------------
+// Une prime n'a jamais transité par l'enveloppe : la compter ferait
+// plonger le reste à vivre un mois où l'on a reçu de l'argent.
+const versement = (over: Partial<SavingsEntry> = {}): SavingsEntry => ({
+  id: 'e1', goal_id: 'g1', label: 'Prime', amount_cents: 200_000,
+  on_date: '2026-09-14', from_envelope: false, ...over,
+})
+const debut = '2026-09-01'
+const fin = '2026-10-01'
+
+check('rentrée exceptionnelle : neutre sur l’enveloppe',
+  entriesHeldCents([versement()], debut, fin), 0)
+check('versement pris sur le mois : il en sort',
+  entriesHeldCents([versement({ from_envelope: true })], debut, fin), 200_000)
+check('versement d’un autre mois : ignoré',
+  entriesHeldCents([versement({ from_envelope: true, on_date: '2026-08-31' })], debut, fin), 0)
+check('dernier jour du mois : compté',
+  entriesHeldCents([versement({ from_envelope: true, on_date: '2026-09-30' })], debut, fin), 200_000)
+check('premier du mois suivant : exclu',
+  entriesHeldCents([versement({ from_envelope: true, on_date: '2026-10-01' })], debut, fin), 0)
+check('plusieurs versements cumulés', entriesHeldCents([
+  versement({ from_envelope: true }),
+  versement({ id: 'e2', from_envelope: true, amount_cents: 50_000 }),
+  versement({ id: 'e3' }),
+], debut, fin), 250_000)
 
 console.log(`\n${failures === 0 ? '✓ tout passe' : `✗ ${failures} échec(s)`}\n`)
 process.exit(failures === 0 ? 0 : 1)

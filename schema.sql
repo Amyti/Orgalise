@@ -358,6 +358,7 @@ alter table public.fixed_charges  enable row level security;
 alter table public.planned_expenses enable row level security;
 
 -- --- profils : le sien + celui des co-membres -------------------------
+drop policy if exists "profil visible" on public.profiles;
 create policy "profil visible" on public.profiles for select
   using (
     id = auth.uid()
@@ -367,60 +368,76 @@ create policy "profil visible" on public.profiles for select
     )
   );
 
+drop policy if exists "modifier son profil" on public.profiles;
 create policy "modifier son profil" on public.profiles for update
   using (id = auth.uid()) with check (id = auth.uid());
 
 -- --- groupes ---------------------------------------------------------
+drop policy if exists "voir ses groupes" on public.groups;
 create policy "voir ses groupes" on public.groups for select
   using (public.is_group_member(id));
 
+drop policy if exists "admin modifie" on public.groups;
 create policy "admin modifie" on public.groups for update
   using (created_by = auth.uid()) with check (created_by = auth.uid());
 
 -- --- membres ---------------------------------------------------------
+drop policy if exists "voir les membres" on public.group_members;
 create policy "voir les membres" on public.group_members for select
   using (public.is_group_member(group_id));
 
+drop policy if exists "se retirer" on public.group_members;
 create policy "se retirer" on public.group_members for delete
   using (user_id = auth.uid());
 
 -- --- events : lecture ET écriture pour tout membre --------------------
+drop policy if exists "events du groupe" on public.events;
 create policy "events du groupe" on public.events for all
   using (public.is_group_member(group_id))
   with check (public.is_group_member(group_id));
 
 -- --- flux ICS : chacun gère les siens, visibles par le groupe ---------
+drop policy if exists "voir les flux" on public.calendar_feeds;
 create policy "voir les flux" on public.calendar_feeds for select
   using (public.is_group_member(group_id));
 
+drop policy if exists "gérer ses flux" on public.calendar_feeds;
 create policy "gérer ses flux" on public.calendar_feeds for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid() and public.is_group_member(group_id));
 
 -- --- blocs occupés : visibles par le groupe, écrits par le propriétaire
+drop policy if exists "voir les dispos" on public.busy_blocks;
 create policy "voir les dispos" on public.busy_blocks for select
   using (public.is_group_member(group_id));
 
+drop policy if exists "écrire ses dispos" on public.busy_blocks;
 create policy "écrire ses dispos" on public.busy_blocks for all
   using (user_id = auth.uid())
   with check (user_id = auth.uid());
 
 -- --- budget : strictement perso --------------------------------------
+drop policy if exists "ses catégories" on public.categories;
 create policy "ses catégories" on public.categories for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "ses dépenses" on public.expenses;
 create policy "ses dépenses" on public.expenses for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "ses budgets" on public.budgets;
 create policy "ses budgets" on public.budgets for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "ses revenus" on public.incomes;
 create policy "ses revenus" on public.incomes for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "ses charges fixes" on public.fixed_charges;
 create policy "ses charges fixes" on public.fixed_charges for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "ses dépenses prévues" on public.planned_expenses;
 create policy "ses dépenses prévues" on public.planned_expenses for all
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
@@ -526,6 +543,7 @@ create index if not exists savings_goals_group_idx on public.savings_goals (grou
 alter table public.savings_goals enable row level security;
 
 -- Le sien, plus ceux partagés dans son espace.
+drop policy if exists "voir ses objectifs" on public.savings_goals;
 create policy "voir ses objectifs" on public.savings_goals for select
   using (
     user_id = auth.uid()
@@ -533,6 +551,7 @@ create policy "voir ses objectifs" on public.savings_goals for select
   );
 
 -- On crée pour soi. Partager exige d'être membre de l'espace visé.
+drop policy if exists "créer un objectif" on public.savings_goals;
 create policy "créer un objectif" on public.savings_goals for insert
   with check (
     user_id = auth.uid()
@@ -540,6 +559,7 @@ create policy "créer un objectif" on public.savings_goals for insert
   );
 
 -- Les deux membres mettent à jour un objectif commun : c'est le but.
+drop policy if exists "modifier un objectif" on public.savings_goals;
 create policy "modifier un objectif" on public.savings_goals for update
   using (
     user_id = auth.uid()
@@ -551,6 +571,7 @@ create policy "modifier un objectif" on public.savings_goals for update
   );
 
 -- Supprimer reste au créateur : on n'efface pas l'objectif de l'autre.
+drop policy if exists "supprimer son objectif" on public.savings_goals;
 create policy "supprimer son objectif" on public.savings_goals for delete
   using (user_id = auth.uid());
 
@@ -589,14 +610,116 @@ create index if not exists savings_plans_goal_idx on public.savings_plans (goal_
 
 alter table public.savings_plans enable row level security;
 
+drop policy if exists "voir son épargne" on public.savings_plans;
 create policy "voir son épargne" on public.savings_plans for select
   using (user_id = auth.uid());
 
+drop policy if exists "ajouter son épargne" on public.savings_plans;
 create policy "ajouter son épargne" on public.savings_plans for insert
   with check (user_id = auth.uid());
 
+drop policy if exists "modifier son épargne" on public.savings_plans;
 create policy "modifier son épargne" on public.savings_plans for update
   using (user_id = auth.uid()) with check (user_id = auth.uid());
 
+drop policy if exists "supprimer son épargne" on public.savings_plans;
 create policy "supprimer son épargne" on public.savings_plans for delete
   using (user_id = auth.uid());
+
+-- ---------------------------------------------------------------------
+-- 5 quinquies. VERSEMENTS PONCTUELS
+-- ---------------------------------------------------------------------
+-- Une prime, un cadeau, un remboursement : ce qu'on met sur un objectif
+-- une fois, par opposition au virement mensuel de `savings_plans`.
+
+create table if not exists public.savings_entries (
+  id            uuid primary key default gen_random_uuid(),
+  user_id       uuid not null references auth.users(id) on delete cascade,
+  -- Supprimer l'objectif efface son historique : ces lignes n'ont pas
+  -- de sens seules.
+  goal_id       uuid not null references public.savings_goals(id) on delete cascade,
+
+  label         text not null,
+  -- ENTIERS de centimes. Jamais de float.
+  amount_cents  int  not null check (amount_cents > 0),
+  on_date       date not null default current_date,
+  from_envelope boolean not null default false,
+
+  created_at    timestamptz not null default now()
+);
+
+create index if not exists savings_entries_user_idx on public.savings_entries (user_id, on_date desc);
+create index if not exists savings_entries_goal_idx on public.savings_entries (goal_id);
+
+alter table public.savings_entries enable row level security;
+
+-- Personnelles, même sur un objectif commun : le pot est partagé, qui y
+-- a mis quoi ne l'est pas.
+drop policy if exists "voir ses versements" on public.savings_entries;
+create policy "voir ses versements" on public.savings_entries for select
+  using (user_id = auth.uid());
+
+drop policy if exists "ajouter ses versements" on public.savings_entries;
+create policy "ajouter ses versements" on public.savings_entries for insert
+  with check (user_id = auth.uid());
+
+drop policy if exists "supprimer ses versements" on public.savings_entries;
+create policy "supprimer ses versements" on public.savings_entries for delete
+  using (user_id = auth.uid());
+
+-- ---------------------------------------------------------------------
+-- Enregistrer un versement, en une seule écriture
+-- ---------------------------------------------------------------------
+-- Insérer la ligne puis relire `saved_cents` pour le réécrire perdrait
+-- un versement si les deux membres d'un espace en saisissaient un au
+-- même instant sur un objectif commun. Un `set saved_cents = saved_cents
+-- + n` dans la même transaction ne peut pas se perdre.
+--
+-- SECURITY INVOKER (le défaut) : les policies RLS s'appliquent
+-- normalement, la fonction ne donne aucun droit supplémentaire.
+
+create or replace function public.add_savings_entry(
+  gid       uuid,
+  amount    int,
+  lbl       text,
+  on_day    date,
+  from_env  boolean
+) returns void
+language plpgsql
+as $$
+begin
+  if amount is null or amount <= 0 then
+    raise exception 'montant invalide';
+  end if;
+
+  insert into public.savings_entries (user_id, goal_id, label, amount_cents, on_date, from_envelope)
+  values (auth.uid(), gid, lbl, amount, coalesce(on_day, current_date), coalesce(from_env, false));
+
+  -- Échoue silencieusement si la policy d'update refuse : c'est le
+  -- comportement voulu, l'insert aura échoué avant de toute façon.
+  update public.savings_goals
+     set saved_cents = saved_cents + amount
+   where id = gid;
+end;
+$$;
+
+-- Retirer un versement défait les deux effets ensemble.
+create or replace function public.remove_savings_entry(eid uuid)
+returns void
+language plpgsql
+as $$
+declare
+  ligne public.savings_entries%rowtype;
+begin
+  select * into ligne from public.savings_entries where id = eid;
+  if not found then
+    return;
+  end if;
+
+  delete from public.savings_entries where id = eid;
+
+  update public.savings_goals
+     set saved_cents = greatest(0, saved_cents - ligne.amount_cents)
+   where id = ligne.goal_id;
+end;
+$$;

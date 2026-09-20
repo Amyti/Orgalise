@@ -15,7 +15,7 @@ import {
   wall,
 } from '@/lib/dates'
 import { forecastMonth, remaining, upcoming, type Occurrence } from '@/lib/forecast'
-import { declaredByGoal, heldCents, statusOf } from '@/lib/goals'
+import { declaredByGoal, entriesHeldCents, heldCents, statusOf } from '@/lib/goals'
 import { euros, roundedEuros } from '@/lib/money'
 import { requireBudget } from '@/lib/space'
 import { LimitForm } from './LimitForm'
@@ -33,7 +33,7 @@ export default async function BudgetPage({
 
   const now = new Date()
   const month = startOfMonth(parseIsoDay(mois) ?? now)
-  const { budget, incomes, fixed, planned, history, goals, savings } =
+  const { budget, incomes, fixed, planned, history, goals, savings, entries } =
     await loadDashboard(month)
 
   /*
@@ -45,7 +45,12 @@ export default async function BudgetPage({
    */
   const declared = declaredByGoal(savings)
   const statuses = goals.map((g) => statusOf(g, now, declared.get(g.id) ?? 0))
-  const held = heldCents(statuses)
+  // S'y ajoutent les versements ponctuels pris sur le budget du mois.
+  // Une prime versée à l'objectif, elle, n'a jamais transité par
+  // l'enveloppe : elle n'en sort pas.
+  const held =
+    heldCents(statuses) +
+    entriesHeldCents(entries, isoDay(month), isoDay(addMonths(month, 1)))
 
   const forecast = forecastMonth(month, incomes, fixed, planned, savings, held)
   const planned2 = [1, 2].map((offset) =>

@@ -37,6 +37,23 @@ export type Goal = {
  */
 export type SavingsPlan = SavingsRule
 
+/**
+ * Un versement ponctuel sur un objectif : prime, cadeau, remboursement.
+ *
+ * `from_envelope` distingue les deux origines. Faux — le cas courant —
+ * l'argent vient d'ailleurs et ne sort donc pas du budget du mois. Vrai,
+ * c'est un virement en plus depuis l'argent courant, qui ponctionne
+ * l'enveloppe comme une charge.
+ */
+export type SavingsEntry = {
+  id: string
+  goal_id: string
+  label: string
+  amount_cents: number
+  on_date: string
+  from_envelope: boolean
+}
+
 export type GoalStatus = {
   goal: Goal
   shared: boolean
@@ -137,6 +154,24 @@ export function heldCents(statuses: GoalStatus[]): number {
   return statuses
     .filter((s) => s.goal.hold_in_budget && !s.done && !s.late && s.declaredCents === 0)
     .reduce((total, s) => total + s.shareCents, 0)
+}
+
+/**
+ * Ce que les versements ponctuels d'un mois retirent de l'enveloppe.
+ *
+ * Seuls ceux pris sur le budget comptent : une prime versée sur
+ * l'objectif n'a jamais transité par l'enveloppe, elle n'a donc pas à en
+ * sortir. La compter ferait apparaître un reste à vivre en chute libre
+ * un mois où l'on a, au contraire, reçu de l'argent.
+ */
+export function entriesHeldCents(
+  entries: SavingsEntry[],
+  monthStartIso: string,
+  monthEndIso: string,
+): number {
+  return entries
+    .filter((e) => e.from_envelope && e.on_date >= monthStartIso && e.on_date < monthEndIso)
+    .reduce((total, e) => total + e.amount_cents, 0)
 }
 
 /** Total déclaré pour chaque objectif, par mois. Clé `null` : épargne libre. */

@@ -300,3 +300,69 @@
   line-height: 1.45;
   color: var(--ink-soft);
 }
+
+/* --- Versements ponctuels ---------------------------------------------- */
+
+.entries {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--separator);
+  display: flex;
+  flex-direction: column;
+}
+
+.entry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 0;
+}
+
+.entryMain {
+  flex-grow: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.entryLabel {
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.entryMeta {
+  font-size: 11px;
+  color: var(--ink-soft);
+  margin-top: 1px;
+}
+
+.entryAmount {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--user-b);
+  flex-shrink: 0;
+}
+
+.entryForm {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--separator);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pair {
+  display: flex;
+  gap: 10px;
+}
+
+.pair > div {
+  flex: 1 1 0;
+  min-width: 0;
+}
