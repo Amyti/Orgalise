@@ -28,7 +28,8 @@ Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 
 ### Lecture des captures bancaires (facultatif)
 
-`/budget/import` fait lire des captures d'écran par un modèle de vision.
+`/budget/import` fait lire un relevé PDF ou des captures d'écran par un
+modèle de vision.
 Sans clé, l'écran retombe sur le collage d'un JSON préparé ailleurs — il
 reste utilisable, il est juste moins direct.
 
@@ -58,7 +59,7 @@ modèle ne décide jamais de ce qui entre en base.
 | `/budget/plan` | — | revenus, charges fixes, dépenses prévues |
 | `/budget/ajout` | `Ajout` | montant + pavé numérique custom + 8 catégories |
 | `/budget/tableau` | `Tableau` | recherche, filtres, sous-totaux par jour, export CSV |
-| `/budget/import` | — | captures d'écran bancaires lues par un modèle de vision |
+| `/budget/import` | — | relevé PDF ou captures, lus par un modèle de vision |
 | `/nous` | `Espace` | membres, prénoms, calendriers branchés, déconnexion |
 
 Navigation basse unifiée à quatre entrées : **Accueil · Agenda · Budget · Nous**.

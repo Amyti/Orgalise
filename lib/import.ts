@@ -290,7 +290,7 @@ export function totalCents(rows: ImportRow[]): number {
  */
 export function promptFor(known: string[]): string {
   return [
-    "Voici des captures d'écran de mon relevé bancaire.",
+    'Voici mon relevé bancaire, en captures ou en PDF.',
     '',
     'Réponds uniquement par un tableau JSON, sans phrase avant ni après.',
     'Une ligne par dépense, sous cette forme exacte :',

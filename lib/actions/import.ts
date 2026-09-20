@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { MAX_IMAGES, readReceipts, type Shot } from '@/lib/ai'
+import { MAX_IMAGES, readReceipts, type Piece } from '@/lib/ai'
 import { parseExpenseJson, promptFor, rowKey } from '@/lib/import'
 import { requireBudget, requireUser } from '@/lib/space'
 import { createClient } from '@/lib/supabase/server'
@@ -111,10 +111,15 @@ export async function importExpenses(
   }
 }
 
-/** `data:image/jpeg;base64,AAA…` → les deux morceaux dont l'API a besoin. */
-function readDataUrl(value: string): Shot | null {
-  const m = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/.exec(value)
-  return m ? { mediaType: m[1], base64: m[2] } : null
+/** `data:image/jpeg;base64,AAA…` → les morceaux dont l'API a besoin. */
+function readDataUrl(value: string): Piece | null {
+  const m = /^data:(image\/(?:jpeg|png|webp|gif)|application\/pdf);base64,([A-Za-z0-9+/=]+)$/.exec(value)
+  if (!m) return null
+  return {
+    kind: m[1] === 'application/pdf' ? 'pdf' : 'image',
+    mediaType: m[1],
+    base64: m[2],
+  }
 }
 
 /**
@@ -131,21 +136,21 @@ export async function analyseScreenshots(
 ): Promise<AnalyseState> {
   await requireBudget()
 
-  const shots = formData
+  const pieces = formData
     .getAll('shot')
     .map((v) => readDataUrl(String(v)))
-    .filter((s): s is Shot => s !== null)
+    .filter((p): p is Piece => p !== null)
     .slice(0, MAX_IMAGES)
 
-  if (shots.length === 0) {
-    return { status: 'error', message: 'Choisis au moins une capture.', json: '' }
+  if (pieces.length === 0) {
+    return { status: 'error', message: 'Choisis au moins une capture ou un relevé.', json: '' }
   }
 
   const supabase = await createClient()
   const { data: categories } = await supabase.from('categories').select('name')
   const known = (categories ?? []).map((c) => c.name as string)
 
-  const result = await readReceipts(shots, promptFor(known))
+  const result = await readReceipts(pieces, promptFor(known))
   if (!result.ok) {
     return { status: 'error', message: result.message, json: '' }
   }
@@ -156,7 +161,7 @@ export async function analyseScreenshots(
   if (error || rows.length === 0) {
     return {
       status: 'error',
-      message: "Aucune dépense n'a pu être lue sur ces captures. Vérifie qu'on y voit les montants et les dates.",
+      message: "Aucune dépense n'a pu être lue. Vérifie qu'on voit bien les montants et les dates.",
       json: '',
     }
   }

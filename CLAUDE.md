@@ -280,9 +280,16 @@ Sans revenu saisi, l'écran retombe sur l'ancien plafond manuel
 
 ### L'import de dépenses
 
-On choisit ses captures d'écran bancaires dans sa pellicule, l'app en
-tire les dépenses et les montre avant d'écrire quoi que ce soit.
-L'entrée est dans les réglages.
+On choisit son relevé mensuel en PDF — ou, à défaut, des captures
+d'écran — et l'app en tire les dépenses, qu'elle montre avant d'écrire
+quoi que ce soit. L'entrée est dans les réglages.
+
+**Le PDF est la bonne voie**, et pas seulement parce qu'il est complet :
+une page coûte environ 1 000 jetons, donc un relevé de deux pages
+couvre tout un mois pour ~0,7 centime, là où quatre imports de captures
+coûtent ~1,9 centime pour une couverture pleine de trous. Les captures
+restent proposées parce que toutes les applis bancaires ne savent pas
+exporter un relevé.
 
 Le chemin complet : les images sont réduites **dans le navigateur**
 (1400 px de côté, JPEG), montent vers une action serveur, qui appelle

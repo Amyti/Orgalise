@@ -34,7 +34,15 @@ const MAX_TOKENS = 2000
 /** Au-delà, l'envoi devient lourd et la lecture perd en fiabilité. */
 export const MAX_IMAGES = 6
 
-export type Shot = { mediaType: string; base64: string }
+/**
+ * Une pièce à lire : capture d'écran ou relevé PDF.
+ *
+ * Le PDF est le meilleur des deux — un relevé mensuel est complet et
+ * exact, là où des captures laissent toujours des trous — mais tout le
+ * monde ne sait pas en sortir un de son appli bancaire. Les deux
+ * coexistent, et rien n'empêche d'en mêler dans un même envoi.
+ */
+export type Piece = { kind: 'image' | 'pdf'; mediaType: string; base64: string }
 
 export type VisionResult =
   | { ok: true; text: string }
@@ -44,19 +52,19 @@ export function hasAiKey(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY)
 }
 
-export async function readReceipts(shots: Shot[], prompt: string): Promise<VisionResult> {
+export async function readReceipts(pieces: Piece[], prompt: string): Promise<VisionResult> {
   const key = process.env.ANTHROPIC_API_KEY
   if (!key) {
     return { ok: false, message: "La lecture automatique n'est pas configurée sur ce serveur." }
   }
-  if (shots.length === 0) {
-    return { ok: false, message: 'Choisis au moins une capture.' }
+  if (pieces.length === 0) {
+    return { ok: false, message: 'Choisis au moins une capture ou un relevé.' }
   }
 
   const content = [
-    ...shots.map((s) => ({
-      type: 'image' as const,
-      source: { type: 'base64' as const, media_type: s.mediaType, data: s.base64 },
+    ...pieces.map((p) => ({
+      type: (p.kind === 'pdf' ? 'document' : 'image') as 'document' | 'image',
+      source: { type: 'base64' as const, media_type: p.mediaType, data: p.base64 },
     })),
     { type: 'text' as const, text: prompt },
   ]
@@ -96,7 +104,11 @@ export async function readReceipts(shots: Shot[], prompt: string): Promise<Visio
       ok: false,
       message: passager
         ? 'Le service de lecture est saturé. Réessaie dans un instant.'
-        : `La lecture a échoué (erreur ${response.status}).`,
+        : response.status === 400
+          // Un relevé protégé par mot de passe échoue ici, et le dire
+          // épargne de chercher du côté de la clé ou du réseau.
+          ? "Ce fichier n'a pas pu être lu. S'il s'agit d'un PDF protégé par mot de passe, enlève la protection d'abord."
+          : `La lecture a échoué (erreur ${response.status}).`,
     }
   }
 
@@ -114,7 +126,7 @@ export async function readReceipts(shots: Shot[], prompt: string): Promise<Visio
     .join('')
 
   if (!text.trim()) {
-    return { ok: false, message: "Rien n'a été lu sur ces captures." }
+    return { ok: false, message: "Rien n'a été lu dans ces fichiers." }
   }
 
   // Le crochet qu'on a écrit nous-même ne revient pas dans la réponse.

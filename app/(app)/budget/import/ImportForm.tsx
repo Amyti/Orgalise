@@ -30,6 +30,22 @@ const PREVIEW = 6
  */
 const MAX_PIXELS = 640_000
 
+/** Taille maximale d'un relevé PDF. Un relevé mensuel pèse quelques centaines de ko. */
+const MAX_PDF_BYTES = 5_000_000
+
+/** Un fichier choisi, prêt à partir. */
+type Piece = { kind: 'image' | 'pdf'; url: string; name: string }
+
+/** Lit un fichier tel quel, sans retouche — cas du PDF. */
+function asDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(String(reader.result))
+    reader.onerror = () => reject(reader.error)
+    reader.readAsDataURL(file)
+  })
+}
+
 /** Réduit et recompresse une image dans le navigateur, avant tout envoi. */
 async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file)
@@ -51,8 +67,9 @@ export function ImportForm({ known, aiReady, maxImages }: {
   const [analyse, analyseAction, analysing] = useActionState(analyseScreenshots, initialAnalyseState)
   const [saved, importAction, saving] = useActionState(importExpenses, initialImportState)
 
-  const [shots, setShots] = useState<string[]>([])
+  const [shots, setShots] = useState<Piece[]>([])
   const [preparing, setPreparing] = useState(false)
+  const [tooBig, setTooBig] = useState(false)
   const [raw, setRaw] = useState('')
   const [manual, setManual] = useState(!aiReady)
   const [copied, setCopied] = useState(false)
@@ -71,8 +88,22 @@ export function ImportForm({ known, aiReady, maxImages }: {
     const files = Array.from(e.target.files ?? []).slice(0, maxImages - shots.length)
     if (files.length === 0) return
     setPreparing(true)
+    setTooBig(false)
     try {
-      const next = await Promise.all(files.map(shrink))
+      const next: Piece[] = []
+      for (const file of files) {
+        if (file.type === 'application/pdf') {
+          // Un PDF part tel quel : le réduire n'aurait aucun sens, et
+          // l'API le lit page par page.
+          if (file.size > MAX_PDF_BYTES) {
+            setTooBig(true)
+            continue
+          }
+          next.push({ kind: 'pdf', url: await asDataUrl(file), name: file.name })
+        } else {
+          next.push({ kind: 'image', url: await shrink(file), name: file.name })
+        }
+      }
       setShots((current) => [...current, ...next].slice(0, maxImages))
     } catch {
       // Un format que le navigateur ne sait pas décoder : on l'ignore.
@@ -122,7 +153,7 @@ export function ImportForm({ known, aiReady, maxImages }: {
       {aiReady && !manual && (
         <form action={analyseAction} className={styles.section}>
           <div className={styles.sectionHead}>
-            <h2 className="sectionTitle">Tes captures</h2>
+            <h2 className="sectionTitle">Ton relevé</h2>
             {shots.length > 0 && (
               <div className={styles.count}>
                 {shots.length} / {maxImages}
@@ -132,16 +163,25 @@ export function ImportForm({ known, aiReady, maxImages }: {
 
           {shots.length > 0 && (
             <div className={styles.shots}>
-              {shots.map((src, i) => (
+              {shots.map((piece, i) => (
                 <div key={i} className={styles.shot}>
-                  {/* Vignette locale, jamais servie par le réseau. */}
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={src} alt={`Capture ${i + 1}`} className={styles.shotImg} />
-                  <input type="hidden" name="shot" value={src} />
+                  {piece.kind === 'pdf' ? (
+                    <div className={styles.pdf}>
+                      <span className={styles.pdfTag}>PDF</span>
+                      <span className={styles.pdfName}>{piece.name}</span>
+                    </div>
+                  ) : (
+                    <>
+                      {/* Vignette locale, jamais servie par le réseau. */}
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={piece.url} alt={`Capture ${i + 1}`} className={styles.shotImg} />
+                    </>
+                  )}
+                  <input type="hidden" name="shot" value={piece.url} />
                   <button
                     type="button"
                     className={styles.shotRemove}
-                    aria-label={`Retirer la capture ${i + 1}`}
+                    aria-label={`Retirer ${piece.name}`}
                     onClick={() => setShots((c) => c.filter((_, j) => j !== i))}
                     disabled={busy}
                   >
@@ -158,7 +198,7 @@ export function ImportForm({ known, aiReady, maxImages }: {
                 ref={fileInput}
                 id="shots"
                 type="file"
-                accept="image/*"
+                accept="image/*,application/pdf"
                 multiple
                 className="srOnly"
                 onChange={onPick}
@@ -169,17 +209,26 @@ export function ImportForm({ known, aiReady, maxImages }: {
                 {preparing
                   ? 'Préparation…'
                   : shots.length === 0
-                    ? 'Choisir mes captures'
+                    ? 'Choisir mon relevé ou mes captures'
                     : 'En ajouter'}
               </label>
             </>
           )}
 
           <p className={styles.help}>
-            Les captures de ton appli bancaire, là où on voit les montants et
-            les dates. Elles sont réduites sur ton téléphone avant l'envoi et
-            ne sont jamais conservées.
+            Le mieux : le relevé mensuel en PDF, que la plupart des applis
+            bancaires savent exporter. Il couvre tout le mois d'un coup, sans
+            trou, et coûte moins cher à lire que des captures. Sinon, des
+            captures où l'on voit les montants et les dates. Les images sont
+            réduites sur ton téléphone avant l'envoi ; rien n'est conservé.
           </p>
+
+          {tooBig && (
+            <div className="noticeBox" role="status">
+              Un fichier dépassait 5 Mo et a été écarté. Un relevé mensuel
+              pèse normalement bien moins.
+            </div>
+          )}
 
           {analyse.status === 'error' && (
             <div className="errorBox" role="alert">
