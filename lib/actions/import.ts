@@ -32,13 +32,14 @@ export async function importExpenses(
 
   const { rows, rejects, error } = parseExpenseJson(raw, known)
 
-  if (error) return { status: 'error', message: error, added: 0, skipped: 0 }
+  if (error) return { status: 'error', message: error, added: 0, skipped: 0, months: [] }
   if (rows.length === 0) {
     return {
       status: 'error',
       message: "Aucune dépense lisible dans ce JSON.",
       added: 0,
       skipped: 0,
+      months: [],
     }
   }
 
@@ -84,11 +85,15 @@ export async function importExpenses(
   if (fresh.length > 0) {
     const { error: failed } = await supabase.from('expenses').insert(fresh)
     if (failed) {
+      // Le détail part dans les logs : l'écran reste sobre, mais on ne
+      // veut pas chercher à l'aveugle si ça se reproduit.
+      console.error('[import]', failed.code, failed.message)
       return {
         status: 'error',
         message: "Les dépenses n'ont pas pu être enregistrées.",
         added: 0,
         skipped: 0,
+        months: [],
       }
     }
   }
@@ -108,6 +113,7 @@ export async function importExpenses(
     message: `${parts.join(' · ')}.`,
     added: fresh.length,
     skipped,
+    months: [...new Set(fresh.map((f) => f.spent_on.slice(0, 7)))].sort(),
   }
 }
 

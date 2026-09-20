@@ -41,12 +41,21 @@ export type ImportState = {
   message: string
   added: number
   skipped: number
+  /**
+   * Mois effectivement touchés, au format `AAAA-MM`.
+   *
+   * Un relevé couvre souvent le mois passé. Sans cette information,
+   * l'écran renvoyait vers le mois en cours — vide — et l'import avait
+   * l'air d'avoir échoué alors qu'il avait réussi.
+   */
+  months: string[]
 }
 export const initialImportState: ImportState = {
   status: 'idle',
   message: '',
   added: 0,
   skipped: 0,
+  months: [],
 }
 
 /**

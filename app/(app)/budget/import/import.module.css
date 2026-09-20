@@ -304,3 +304,11 @@
   -webkit-box-orient: vertical;
   word-break: break-word;
 }
+
+/* Le mois d'atterrissage : un relevé couvre souvent le mois passé. */
+.doneWhere {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+}

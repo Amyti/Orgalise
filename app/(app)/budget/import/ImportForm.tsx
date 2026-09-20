@@ -6,7 +6,7 @@ import { useActionState, useEffect, useMemo, useRef, useState } from 'react'
 import { CheckIcon, PlusIcon, TrashIcon } from '@/components/Icons'
 import { analyseScreenshots, importExpenses } from '@/lib/actions/import'
 import { initialAnalyseState, initialImportState } from '@/lib/actions/state'
-import { parseIsoDay, shortDate } from '@/lib/dates'
+import { monthName, parseIsoDay, shortDate } from '@/lib/dates'
 import { parseExpenseJson, promptFor, totalCents } from '@/lib/import'
 import { euros } from '@/lib/money'
 import styles from './import.module.css'
@@ -129,17 +129,37 @@ export function ImportForm({ known, aiReady, maxImages }: {
 
   /* --- Après l'enregistrement ---------------------------------------- */
   if (saved.status === 'ok') {
+    /*
+     * Un relevé couvre souvent le mois passé. Renvoyer vers le mois en
+     * cours montrait un écran vide, et l'import réussi avait l'air
+     * d'avoir échoué. On nomme donc les mois touchés, et le lien mène au
+     * premier d'entre eux.
+     */
+    const noms = saved.months
+      .map((m) => parseIsoDay(`${m}-01`))
+      .filter((d): d is Date => d !== null)
+      .map((d) => monthName(d))
+    const cible = saved.months[0] ? `?mois=${saved.months[0]}-01` : ''
+
     return (
       <section className={styles.section}>
         <div className={styles.done}>
           <div className={styles.doneBadge}>
             <CheckIcon size={22} color="var(--on-strong)" width={2.4} />
           </div>
-          <p className={styles.doneText}>{saved.message}</p>
+          <div>
+            <p className={styles.doneText}>{saved.message}</p>
+            {noms.length > 0 && (
+              <p className={styles.doneWhere}>
+                {noms.length === 1 ? 'Sur ' : 'Réparties sur '}
+                {noms.join(', ')}.
+              </p>
+            )}
+          </div>
         </div>
         <div className={styles.actions}>
-          <Link href="/budget/tableau" className="btnPrimary">
-            Voir mes dépenses
+          <Link href={`/budget/tableau${cible}`} className="btnPrimary">
+            {noms.length === 1 ? `Voir ${noms[0]}` : 'Voir mes dépenses'}
           </Link>
           <button type="button" className={styles.ghost} onClick={() => window.location.reload()}>
             Importer autre chose
