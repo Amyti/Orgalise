@@ -14,7 +14,7 @@
  * serveur la rejoue avant d'écrire. Ce qui vient du navigateur n'est
  * jamais cru sur parole.
  */
-import { isoDay, parseIsoDay } from './dates'
+import { isoDay, parseIsoDay, wall } from './dates'
 import { parseCents } from './money'
 
 /** Au-delà, c'est un fichier exporté, pas des captures d'écran relues. */
@@ -213,7 +213,12 @@ function rowsOf(parsed: unknown): unknown[] | null {
 /**
  * @param known Noms des catégories de la personne, tels qu'ils sont en base.
  */
-export function parseExpenseJson(raw: string, known: string[]): ImportResult {
+export function parseExpenseJson(
+  raw: string,
+  known: string[],
+  /** Sert à écarter les dates futures. Injectable pour les tests. */
+  now: Date = new Date(),
+): ImportResult {
   const text = unwrap(raw)
   if (!text) return EMPTY
 
@@ -239,6 +244,10 @@ export function parseExpenseJson(raw: string, known: string[]): ImportResult {
 
   const rows: ImportRow[] = []
   const rejects: ImportReject[] = []
+  // Une dépense ne peut pas être dans le futur. Garde-fou indépendant de
+  // l'invite : un modèle qui se trompe d'année le fait silencieusement,
+  // et la dépense atterrit dans un mois qu'on ne regardera jamais.
+  const today = isoDay(now)
 
   list.slice(0, MAX_ROWS).forEach((entry, index) => {
     if (!entry || typeof entry !== 'object') {
@@ -264,6 +273,10 @@ export function parseExpenseJson(raw: string, known: string[]): ImportResult {
     const spentOn = isoDate(field(row, DATE))
     if (!spentOn) {
       rejects.push({ index, reason: 'date illisible' })
+      return
+    }
+    if (spentOn > today) {
+      rejects.push({ index, reason: 'date dans le futur' })
       return
     }
 
@@ -341,33 +354,53 @@ export function totalCents(rows: ImportRow[]): number {
  * celles de la personne, jamais une liste figée — une catégorie inventée
  * retomberait dans « Autre » sans qu'elle comprenne pourquoi.
  */
-export function promptFor(known: string[]): string {
+export function promptFor(known: string[], now: Date = new Date()): string {
+  const w = wall(now)
+  const aujourdhui = `${w.day} ${MOIS[w.month - 1]} ${w.year}`
+
   return [
     'Voici mon relevé bancaire, en captures ou en PDF.',
+    '',
+    `Nous sommes le ${aujourdhui}.`,
     '',
     'Réponds uniquement par un tableau JSON, sans phrase avant ni après.',
     'Une ligne par dépense, sous cette forme exacte :',
     '',
     '  ["AAAA-MM-JJ", "Nom du commerce", 12.34, "Courses"]',
     '',
-    `Catégories possibles : ${known.join(', ')}.`,
+    "LA DATE. Un relevé affiche souvent le jour et le mois sans l'année.",
+    `Déduis-la de la date du jour : nous sommes en ${w.year}, et une`,
+    "opération ne peut pas être dans le futur. Une ligne du 14 septembre",
+    `est donc du 14 septembre ${w.year} ; une ligne d'un mois postérieur`,
+    `au mois en cours appartient à ${w.year - 1}. N'écris jamais une`,
+    'année que tu n\'as pas déduite ainsi.',
+    '',
+    "CE QU'IL NE FAUT PAS PRENDRE. Uniquement l'argent qui SORT du",
+    "compte. Un relevé mélange les deux sens, et l'argent qui ENTRE se",
+    'reconnaît à un signe « + », à une couleur verte, ou à un libellé du',
+    'genre virement reçu, salaire, paie, remboursement, remise, crédit,',
+    "avoir. Ne relève aucune de ces lignes. Dans le doute sur le sens",
+    "d'une opération, ne la prends pas : une dépense manquante se",
+    'rattrape, une fausse dépense fausse tout le mois.',
+    '',
+    'Ignore également les soldes, les totaux, les en-têtes et les',
+    "plafonds de carte : ce sont des chiffres d'affichage.",
+    '',
+    `LA CATÉGORIE, l'une de celles-ci exactement : ${known.join(', ')}.`,
     "En cas de doute, mets « Autre » plutôt que d'en inventer une.",
     '',
-    'Uniquement des dépenses : ignore les virements reçus, les salaires et',
-    'les remboursements. Montants positifs, en euros.',
-    '',
-    'Ne relève QUE les lignes de la liste des opérations. Ignore les',
-    'soldes, les totaux, les en-têtes, les plafonds de carte et les',
-    "encadrés de résumé : ce sont des chiffres d'affichage, pas des",
-    'dépenses. En prendre un gonfle le total de tout le mois.',
-    '',
-    'Sois exhaustif. Parcours chaque image de haut en bas et relève',
-    'TOUTES les lignes, y compris les petits montants et celles qui se',
+    'Sois exhaustif. Parcours de haut en bas et relève TOUTES les lignes',
+    'de dépense, y compris les petits montants et celles qui se',
     "ressemblent. N'abrège pas, ne résume pas, ne saute aucune opération",
-    'même répétée. Recopie les montants exactement comme ils sont',
-    "affichés, sans rien arrondir ni recalculer.",
+    'même répétée. Recopie les montants exactement comme affichés, sans',
+    'rien arrondir ni recalculer.',
     '',
-    'Tu peux examiner les images avant de répondre. Termine par le',
+    'Tu peux examiner le document avant de répondre. Termine par le',
     'tableau JSON, seul, sans commentaire après lui.',
   ].join('\n')
 }
+
+const MOIS = [
+  'janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+  'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre',
+] as const

@@ -422,6 +422,25 @@ prendre un pour une dépense gonfle le total du mois entier. Le symptôme
 est reconnaissable : moins de lignes que la réalité, mais un total plus
 élevé.
 
+**Elle donne la date du jour**, parce qu'un relevé affiche « 14 sept. »
+sans année et qu'un modèle non situé dans le temps en invente une. Le
+symptôme est spectaculaire et silencieux : tout l'import atterrit en
+septembre 2024, dans un mois que personne ne consultera jamais. L'invite
+explique donc la déduction — une opération ne peut pas être dans le
+futur, un mois postérieur au mois en cours appartient à l'année
+précédente — et `parseExpenseJson` écarte de son côté toute date future,
+garde-fou indépendant du modèle.
+
+**Elle explique comment reconnaître un crédit** et pas seulement qu'il
+faut l'ignorer : signe « + », couleur verte, libellés virement reçu,
+salaire, remboursement, remise, avoir. Dire « ignore les virements
+reçus » ne suffit pas si l'on ne dit pas à quoi ça ressemble.
+
+**L'invite ne s'optimise pas.** Elle vaut ~440 jetons, soit 0,04 centime
+par requête, sur une entrée cinq fois moins chère que la sortie. Chaque
+tentative pour la raccourcir a coûté des dépenses manquantes ou fausses.
+La précision de l'invite est le levier le moins cher du système.
+
 **Ce qui coûte cher, et ce qui n'en a pas l'air.** Les jetons de sortie
 valent cinq fois ceux d'entrée. D'où deux choix qui pourraient sembler
 arbitraires :

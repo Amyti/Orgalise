@@ -20,7 +20,7 @@ import { computeBand, bandTicks, bandHours, splitDays, WEEK_BAND } from '../lib/
 import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
-import { parseExpenseJson, rowKey, totalCents, MAX_ROWS } from '../lib/import'
+import { parseExpenseJson, promptFor, rowKey, totalCents, MAX_ROWS } from '../lib/import'
 import { declaredByGoal, entriesHeldCents, heldCents, monthsBetween, statusOf, type Goal, type SavingsEntry } from '../lib/goals'
 import type { SavingsRule } from '../lib/forecast'
 
@@ -340,6 +340,24 @@ check('compact sans catégorie', lire('[["2026-09-14","Carrefour",42.9]]').rows[
 check('compact tronqué → refusé', lire('[["Carrefour"]]').rejects[0].reason, 'montant illisible')
 // Les deux formes cohabitent : une IA tierce peut encore rendre des objets.
 check('objets et tableaux mêlés', lire('[["2026-09-14","a",1,"Courses"],{"date":"2026-09-15","libelle":"b","montant":2}]').rows.length, 2)
+
+// Une dépense ne peut pas être dans le futur : un modèle qui se trompe
+// d'année le fait sans le dire, et la ligne part dans un mois qu'on ne
+// regardera jamais.
+const maintenant = fromWall(2026, 9, 20)
+const lireAu = (raw: string) => parseExpenseJson(raw, CATS, maintenant)
+check('date future écartée',
+  lireAu('[["2027-01-05","x",3]]').rejects[0].reason, 'date dans le futur')
+check("aujourd'hui accepté", lireAu('[["2026-09-20","x",3]]').rows.length, 1)
+check('demain refusé', lireAu('[["2026-09-21","x",3]]').rows.length, 0)
+check('le passé reste accepté', lireAu('[["2024-09-14","x",3]]').rows.length, 1)
+
+// L'invite doit situer le modèle dans le temps, sinon il invente l'année.
+const invite = promptFor(CATS, maintenant)
+check("l'invite donne la date du jour", invite.includes('20 septembre 2026'), true)
+check("l'invite nomme l'année précédente", invite.includes('2025'), true)
+check("l'invite liste les catégories", invite.includes('Abonnements'), true)
+check("l'invite écarte les crédits", invite.includes('virement reçu'), true)
 
 check('montant nul écarté', lire('[{"date":"2026-09-14","libelle":"x","montant":0}]').rejects[0].reason, 'montant nul')
 // Le modèle n'est plus bâillonné par un préremplissage : il peut
