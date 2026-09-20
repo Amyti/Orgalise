@@ -20,6 +20,7 @@ import { computeBand, bandTicks, bandHours, splitDays, WEEK_BAND } from '../lib/
 import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
+import { parseExpenseJson, rowKey, totalCents, MAX_ROWS } from '../lib/import'
 
 let failures = 0
 function check(name: string, actual: unknown, expected: unknown) {
@@ -280,6 +281,62 @@ check('JWT sans sub → abandon', readTokenClaims([
 check('jeton d’une heure : frais', isFresh({ sub: SUB, exp: dans1h }), true)
 check('expire dans 30 s : pas frais', isFresh({ sub: SUB, exp: Math.floor(Date.now()/1000) + 30 }), false)
 check('déjà expiré : pas frais', isFresh({ sub: SUB, exp: Math.floor(Date.now()/1000) - 10 }), false)
+
+// ---------------------------------------------------------------------
+// Import d'un JSON de dépenses écrit par une IA.
+// Ce qui arrive là n'est pas une API : c'est du texte de modèle, donc
+// irrégulier. Chaque tolérance ci-dessous répond à une forme observée.
+// ---------------------------------------------------------------------
+const CATS = ['Courses', 'Resto', 'Transport', 'Loisirs', 'Logement', 'Santé', 'Abonnements', 'Autre']
+const lire = (raw: string) => parseExpenseJson(raw, CATS)
+
+check('cas nominal', lire('[{"date":"2026-09-14","libelle":"Carrefour","montant":42.9,"categorie":"Courses"}]').rows,
+  [{ label: 'Carrefour', amountCents: 4290, spentOn: '2026-09-14', categoryName: 'Courses' }])
+
+// 42.90 * 100 vaut 4289,9999… en binaire : l'arrondi n'est pas cosmétique.
+check('centimes entiers, jamais de float', lire('[{"date":"2026-09-14","libelle":"x","montant":42.90,"categorie":"Autre"}]').rows[0].amountCents, 4290)
+check('montant en chaîne française', lire('[{"date":"2026-09-14","libelle":"x","montant":"12,50 €"}]').rows[0].amountCents, 1250)
+// Un relevé note les débits en négatif ; l'app ne stocke que du positif.
+check('débit négatif ramené au positif', lire('[{"date":"2026-09-14","libelle":"x","montant":-8.4}]').rows[0].amountCents, 840)
+
+// Les modèles rendent volontiers leur réponse dans un bloc de code.
+check('bloc Markdown déballé', lire('```json\n[{"date":"2026-09-14","libelle":"x","montant":3}]\n```').rows.length, 1)
+check('objet enveloppant', lire('{"depenses":[{"date":"2026-09-14","libelle":"x","montant":3}]}').rows.length, 1)
+check('dépense unique sans tableau', lire('{"date":"2026-09-14","libelle":"x","montant":3}').rows.length, 1)
+
+// Les noms de clés varient d'une génération à l'autre.
+check('alias de clés', lire('[{"jour":"14/09/2026","description":"Uber","prix":"9,90","type":"transport"}]').rows,
+  [{ label: 'Uber', amountCents: 990, spentOn: '2026-09-14', categoryName: 'Transport' }])
+check('clé accentuée', lire('[{"date":"2026-09-14","libellé":"x","montant":3,"catégorie":"Santé"}]').rows[0].categoryName, 'Santé')
+
+check('date française', lire('[{"date":"03/01/2026","libelle":"x","montant":3}]').rows[0].spentOn, '2026-01-03')
+check('année sur deux chiffres', lire('[{"date":"03/01/26","libelle":"x","montant":3}]').rows[0].spentOn, '2026-01-03')
+check('31 février refusé', lire('[{"date":"2026-02-31","libelle":"x","montant":3}]').rejects[0].reason, 'date illisible')
+
+// Aucune catégorie n'est créée depuis un import : deux orthographes
+// feraient deux tranches dans le tableau de bord.
+check('catégorie inconnue → Autre', lire('[{"date":"2026-09-14","libelle":"x","montant":3,"categorie":"Alimentation"}]').rows[0].categoryName, 'Autre')
+check('« Restaurant » rejoint « Resto »', lire('[{"date":"2026-09-14","libelle":"x","montant":3,"categorie":"Restaurant"}]').rows[0].categoryName, 'Resto')
+check('catégorie absente → Autre', lire('[{"date":"2026-09-14","libelle":"x","montant":3}]').rows[0].categoryName, 'Autre')
+
+// Une ligne bancale ne doit pas emporter les bonnes avec elle.
+const melange = lire('[{"date":"2026-09-14","libelle":"bon","montant":3},{"date":"n/a","libelle":"y","montant":4},{"date":"2026-09-15","montant":5}]')
+check('les lignes valides survivent', melange.rows.length, 1)
+check('les autres sont nommées', melange.rejects.map((r) => r.reason), ['date illisible', 'intitulé manquant'])
+check('rang conservé pour retrouver la ligne', melange.rejects[0].index, 1)
+
+check('montant nul écarté', lire('[{"date":"2026-09-14","libelle":"x","montant":0}]').rejects[0].reason, 'montant nul')
+check('texte libre refusé', lire('bonjour').error !== null, true)
+check('liste vide signalée', lire('[]').error, 'La liste est vide.')
+check('vide → rien, sans erreur', lire('   '), { rows: [], rejects: [], error: null })
+
+const trop = lire(JSON.stringify(Array.from({ length: MAX_ROWS + 5 }, () => ({ date: '2026-09-14', libelle: 'x', montant: 1 }))))
+check('plafond de lignes respecté', trop.rows.length, MAX_ROWS)
+
+check('total en centimes', totalCents(lire('[{"date":"2026-09-14","libelle":"a","montant":10},{"date":"2026-09-14","libelle":"b","montant":5.5}]').rows), 1550)
+// La clé de doublon ignore la casse et les accents de l'intitulé.
+check('clé de doublon insensible à la casse', rowKey({ spentOn: '2026-09-14', amountCents: 300, label: 'Café' }),
+  rowKey({ spentOn: '2026-09-14', amountCents: 300, label: 'CAFE' }))
 
 console.log(`\n${failures === 0 ? '✓ tout passe' : `✗ ${failures} échec(s)`}\n`)
 process.exit(failures === 0 ? 0 : 1)

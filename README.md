@@ -42,6 +42,7 @@ Rappel : un projet gratuit se met en pause après 7 jours sans requête.
 | `/budget/plan` | — | revenus, charges fixes, dépenses prévues |
 | `/budget/ajout` | `Ajout` | montant + pavé numérique custom + 8 catégories |
 | `/budget/tableau` | `Tableau` | recherche, filtres, sous-totaux par jour, export CSV |
+| `/budget/import` | — | coller un JSON de dépenses relu par une IA |
 | `/nous` | `Espace` | membres, prénoms, calendriers branchés, déconnexion |
 
 Navigation basse unifiée à quatre entrées : **Accueil · Agenda · Budget · Nous**.

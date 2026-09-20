@@ -246,6 +246,21 @@ export function EspaceScreen({ space, feeds, mode, displayName, modules }: Props
             <ModulesForm current={modules} />
           </section>
 
+          {modules.budget && (
+            <section className={styles.section}>
+              <div className={styles.sectionHead}>
+                <h2 className="sectionTitle">Importer des dépenses</h2>
+              </div>
+              <Link href="/budget/import" className={styles.toggleLink}>
+                Coller un JSON de dépenses
+              </Link>
+              <p className={styles.hint}>
+                Fais relire tes captures d'écran bancaires par une IA, colle sa
+                réponse, et tout est enregistré d'un coup.
+              </p>
+            </section>
+          )}
+
           {space && (
             <section className={styles.section}>
               <div className={styles.sectionHead}>

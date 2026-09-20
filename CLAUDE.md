@@ -205,6 +205,7 @@ markup, les couleurs et les dimensions exactes y sont).
 | `Ajout` | saisie : montant en gros + pavé numérique custom + 8 catégories |
 | `Tableau` | recherche, filtres, lignes groupées par jour avec sous-totaux, export CSV |
 | *(sans maquette)* | `/budget/plan` — revenus, charges fixes, dépenses prévues |
+| *(sans maquette)* | `/budget/import` — coller un JSON de dépenses relu par une IA |
 
 Navigation basse, **adaptée aux outils activés** :
 les deux → **Accueil · Agenda · Budget · Nous** ;
@@ -276,6 +277,35 @@ Tout l'écran Budget tourne autour du **reste à vivre** :
 
 Sans revenu saisi, l'écran retombe sur l'ancien plafond manuel
 (table `budgets`) et propose de configurer le prévisionnel.
+
+### L'import de dépenses
+
+On photographie son relevé bancaire, une IA en tire du JSON, on le colle
+dans `/budget/import`. L'entrée est dans les réglages ; l'écran affiche
+ce qui sera ajouté avant d'écrire quoi que ce soit.
+
+`lib/import.ts` fait la lecture, à part de React et de la base, donc
+testable — une trentaine d'assertions dans `tests/logique.ts`. Le texte
+vient d'un modèle de langage : les clés changent de nom, les montants
+arrivent en nombre ou en chaîne, les dates en ISO ou en français, et le
+tout est souvent emballé dans un bloc Markdown. On accepte largement, et
+on nomme chaque ligne refusée plutôt que de rejeter le lot.
+
+Trois règles :
+
+1. **Aucune catégorie n'est créée par un import.** Un modèle qui hésite
+   entre « Resto » et « Restaurant » en fabriquerait deux, et le tableau
+   de bord afficherait deux tranches pour la même chose. Une catégorie
+   inconnue retombe sur « Autre ».
+2. **Doublon = même jour, même montant, même intitulé.** Un import se
+   refait volontiers deux fois ; les lignes déjà présentes sont comptées
+   et ignorées, à l'intérieur du fichier comme en base.
+3. **Le JSON est relu côté serveur** avec la même fonction que l'aperçu.
+   L'aperçu sert à décider, pas à autoriser.
+
+L'invite remise à l'IA est produite par `promptFor()`, dans le même
+fichier que le lecteur : si l'un cesse d'accepter une forme, l'autre doit
+changer avec lui. Elle liste les catégories réelles de la personne.
 
 ### Fonction utile déjà écrite
 

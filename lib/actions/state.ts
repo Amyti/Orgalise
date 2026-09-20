@@ -30,3 +30,21 @@ export const REPEATS = [
 ] as const
 
 export const VALID_RRULES = new Set<string>(REPEATS.map((r) => r.value))
+
+/**
+ * Import d'un JSON de dépenses. Le compte des ignorées est aussi
+ * important que celui des ajoutées : c'est lui qui explique pourquoi
+ * un second import du même relevé ne change rien.
+ */
+export type ImportState = {
+  status: 'idle' | 'error' | 'ok'
+  message: string
+  added: number
+  skipped: number
+}
+export const initialImportState: ImportState = {
+  status: 'idle',
+  message: '',
+  added: 0,
+  skipped: 0,
+}
