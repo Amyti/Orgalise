@@ -22,13 +22,17 @@ const PREVIEW = 6
  * donc un coût stable quelle que soit la forme de la capture — portrait
  * d'iPhone ou fenêtre d'ordinateur.
  *
- * 640 000 px, c'est environ 850 jetons par image. Une capture d'iPhone
- * (1290 × 2796) descend à 545 × 1180, où le texte d'un relevé reste net.
- * Si des montants étaient mal lus, c'est le premier chiffre à remonter :
- * doubler cette valeur double le coût d'entrée, qui reste la moitié la
- * moins chère de la facture.
+ * 1 150 000 px, c'est environ 1 530 jetons par image. Une capture
+ * d'iPhone (1290 × 2796) descend à 728 × 1578, où les montants d'un
+ * relevé restent nets.
+ *
+ * Cette valeur était à 640 000 px, pour économiser des jetons. Le calcul
+ * était juste et le résultat mauvais : à cette taille le texte d'une
+ * appli bancaire fait huit pixels de haut, et la moitié des lignes
+ * passait à la trappe. On gagnait 0,2 centime par import et on perdait
+ * la moitié des dépenses. Ne pas redescendre.
  */
-const MAX_PIXELS = 640_000
+const MAX_PIXELS = 1_150_000
 
 /** Taille maximale d'un relevé PDF. Un relevé mensuel pèse quelques centaines de ko. */
 const MAX_PDF_BYTES = 5_000_000

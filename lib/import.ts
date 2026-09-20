@@ -302,5 +302,10 @@ export function promptFor(known: string[]): string {
     '',
     'Uniquement des dépenses : ignore les virements reçus, les salaires et',
     'les remboursements. Montants positifs, en euros.',
+    '',
+    'IMPORTANT : sois exhaustif. Parcours chaque image de haut en bas et',
+    'relève TOUTES les lignes, sans exception, y compris les petits',
+    "montants et les lignes qui se ressemblent. N'abrège pas, ne résume",
+    'pas, ne saute aucune opération même répétée.',
   ].join('\n')
 }

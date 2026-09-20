@@ -26,10 +26,12 @@ const MODEL = 'claude-haiku-4-5-20251001'
  *
  * On ne paie que ce qui est réellement produit ; ce nombre borne le pire
  * cas plutôt qu'il ne fixe un coût. Au format compact, une dépense pèse
- * une quinzaine de jetons : 2 000 en couvrent bien plus de cent, soit
- * davantage que ce que six captures peuvent contenir.
+ * une quinzaine de jetons : 3 000 en couvrent deux cents, soit largement
+ * de quoi encaisser un relevé PDF de plusieurs pages sans que la réponse
+ * soit coupée en plein tableau — auquel cas le JSON serait illisible et
+ * tout l'import perdu.
  */
-const MAX_TOKENS = 2000
+const MAX_TOKENS = 3000
 
 /** Au-delà, l'envoi devient lourd et la lecture perd en fiabilité. */
 export const MAX_IMAGES = 6

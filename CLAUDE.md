@@ -399,10 +399,22 @@ arbitraires :
   **surface** (`MAX_PIXELS`), pas le côté le plus long : le coût devient
   indépendant de la forme de la capture.
 
-Ensemble, environ 0,5 centime par import de trois captures — moitié
-moins qu'avec des objets nommés et des images en pleine taille. Si des
-montants étaient mal lus, `MAX_PIXELS` est le premier chiffre à
-remonter : l'entrée est la moitié la moins chère.
+Environ 0,7 centime par import de trois captures.
+
+**Ne pas redescendre `MAX_PIXELS`.** Il a valu 640 000 px pendant une
+version, pour économiser 0,2 centime par import. À cette taille le texte
+d'une appli bancaire fait huit pixels de haut et la moitié des lignes
+passait à la trappe. Le calcul de coût était juste, le résultat mauvais :
+une dépense manquante coûte plus cher que la fraction de centime
+économisée.
+
+**L'OCR local a été envisagé et écarté.** Extraire le texte des captures
+dans le navigateur, puis n'envoyer que du texte, économiserait environ
+2 $ par an pour dix personnes — au prix de 3 à 4 Mo de WASM à charger sur
+un téléphone et des erreurs de lecture sur les montants, qui ne se voient
+pas. L'idée juste derrière — envoyer du texte plutôt que des pixels —
+est déjà servie par le **relevé PDF**, dont la couche de texte est réelle
+et non devinée.
 
 `lib/import.ts` fait la lecture, à part de React et de la base, donc
 testable — une trentaine d'assertions dans `tests/logique.ts`. Le texte
