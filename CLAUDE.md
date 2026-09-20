@@ -206,6 +206,7 @@ markup, les couleurs et les dimensions exactes y sont).
 | `Tableau` | recherche, filtres, lignes groupées par jour avec sous-totaux, export CSV |
 | *(sans maquette)* | `/budget/plan` — revenus, charges fixes, dépenses prévues |
 | *(sans maquette)* | `/budget/import` — captures d'écran bancaires lues par un modèle |
+| *(sans maquette)* | `/budget/objectifs` — objectifs d'épargne, personnels ou communs |
 
 Navigation basse, **adaptée aux outils activés** :
 les deux → **Accueil · Agenda · Budget · Nous** ;
@@ -260,6 +261,24 @@ Supabase → SQL Editor.
    montant est provisionné ; une fois pointée, il sort du provisionnel et
    entre dans le réalisé. C'est ce qui évite de le compter deux fois.
 
+9. **Un objectif d'épargne peut être commun — et c'est la seule table
+   du budget qui touche au groupe.** `savings_goals.group_id` est
+   NULLABLE et vaut NULL par défaut : un objectif naît personnel.
+   Économiser à deux pour un voyage n'a de sens qu'à deux, mais l'entorse
+   s'arrête là — aucune autre table budget ne gagne de `group_id`, et
+   quelqu'un sans espace crée ses objectifs normalement.
+
+   Le montant d'un objectif commun se partage en **deux parts égales**
+   pour la ponction sur le reste à vivre de chacun. C'est une convention,
+   pas une vérité — mais elle est prévisible, et deux est la taille
+   maximale d'un espace.
+
+10. **Ce qu'on a déjà de côté se saisit à la main.** `saved_cents` est un
+    nombre qu'on recopie depuis son livret, pas le résultat d'un registre
+    de versements. Un registre serait plus juste sur le papier et
+    abandonné au bout de trois semaines ; le solde du livret, lui, fait
+    foi et se lit en deux secondes.
+
 ### Le chiffre qui porte le budget
 
 Tout l'écran Budget tourne autour du **reste à vivre** :
@@ -268,6 +287,7 @@ Tout l'écran Budget tourne autour du **reste à vivre** :
   revenus du mois
 − charges fixes
 − dépenses prévues pas encore payées
+− épargne retenue par les objectifs
 ────────────────────────────────────
 = enveloppe
 − déjà dépensé
@@ -277,6 +297,28 @@ Tout l'écran Budget tourne autour du **reste à vivre** :
 
 Sans revenu saisi, l'écran retombe sur l'ancien plafond manuel
 (table `budgets`) et propose de configurer le prévisionnel.
+
+### Les objectifs d'épargne
+
+« 10 000 € avant juin 2027 » ne dit rien. « 1 111 € par mois » dit tout,
+et éventuellement que l'objectif est hors de portée. C'est ce chiffre-là
+que `lib/goals.ts` calcule, et c'est lui qu'affichent les écrans — la
+barre de progression n'est qu'un décor.
+
+Comme les revenus et les charges fixes, rien n'est déplié en base : on
+stocke la cible et l'échéance, et on projette à l'affichage. Le montant
+mensuel se recalcule donc seul quand un mois passe ou qu'on met à jour
+son épargne.
+
+Coché, un objectif **sort de l'enveloppe** au même titre qu'une charge
+fixe — on ne peut pas dépenser ce qu'on a déjà mis de côté. C'est ce qui
+fait qu'un objectif est atteint plutôt que contemplé. Un objectif atteint
+ou dont l'échéance est passée cesse de peser, sinon il écraserait le
+budget indéfiniment.
+
+`forecastMonth()` reçoit une **somme**, pas la liste des objectifs :
+`lib/forecast.ts` ignore jusqu'à leur existence et ne connaît qu'un
+montant qui sort de l'enveloppe.
 
 ### L'import de dépenses
 

@@ -15,6 +15,7 @@ import {
   wall,
 } from '@/lib/dates'
 import { forecastMonth, remaining, upcoming, type Occurrence } from '@/lib/forecast'
+import { heldCents, statusOf } from '@/lib/goals'
 import { euros, roundedEuros } from '@/lib/money'
 import { requireBudget } from '@/lib/space'
 import { LimitForm } from './LimitForm'
@@ -32,11 +33,16 @@ export default async function BudgetPage({
 
   const now = new Date()
   const month = startOfMonth(parseIsoDay(mois) ?? now)
-  const { budget, incomes, fixed, planned, history } = await loadDashboard(month)
+  const { budget, incomes, fixed, planned, history, goals } = await loadDashboard(month)
 
-  const forecast = forecastMonth(month, incomes, fixed, planned)
+  // Un objectif retient de l'argent avant qu'on puisse le dépenser :
+  // il entre dans l'enveloppe au même titre qu'une charge fixe.
+  const statuses = goals.map((g) => statusOf(g, now))
+  const held = heldCents(statuses)
+
+  const forecast = forecastMonth(month, incomes, fixed, planned, held)
   const planned2 = [1, 2].map((offset) =>
-    forecastMonth(addMonths(month, offset), incomes, fixed, planned),
+    forecastMonth(addMonths(month, offset), incomes, fixed, planned, held),
   )
 
   // Les dépenses prévues déjà pointées ont créé une vraie dépense : elles
@@ -130,6 +136,12 @@ export default async function BudgetPage({
                   <dd>−{euros(forecast.plannedPendingCents)}</dd>
                 </div>
               )}
+              {forecast.savingsCents > 0 && (
+                <div className={styles.ledgerRow}>
+                  <dt>Mis de côté</dt>
+                  <dd>−{euros(forecast.savingsCents)}</dd>
+                </div>
+              )}
               <div className={`${styles.ledgerRow} ${styles.ledgerTotal}`}>
                 <dt>Enveloppe du mois</dt>
                 <dd>{euros(forecast.envelopeCents)}</dd>
@@ -157,6 +169,8 @@ export default async function BudgetPage({
               </>
             )}
           </section>
+
+          <GoalsCard statuses={statuses} />
         </>
       ) : (
         <>
@@ -380,5 +394,74 @@ function DueRow({ occurrence }: { occurrence: Occurrence }) {
       </div>
       <div className={styles.dueAmount}>{euros(occurrence.amountCents)}</div>
     </div>
+  )
+}
+
+/**
+ * Les objectifs, vus du tableau de bord.
+ *
+ * On montre le plus proche dans le temps, parce que c'est celui qui
+ * contraint le mois en cours. Le reste tient dans un lien.
+ */
+function GoalsCard({ statuses }: { statuses: ReturnType<typeof statusOf>[] }) {
+  if (statuses.length === 0) {
+    return (
+      <section className={styles.goalsEmpty}>
+        <div>
+          <div className={styles.goalsEmptyTitle}>Un objectif d'épargne&nbsp;?</div>
+          <p className={styles.goalsEmptyText}>
+            Dis combien et pour quand, l'app calcule ce qu'il faut mettre de
+            côté chaque mois.
+          </p>
+        </div>
+        <Link href="/budget/objectifs" className={styles.limitButton}>
+          En créer un
+        </Link>
+      </section>
+    )
+  }
+
+  const sorted = [...statuses].sort(
+    (a, b) => a.goal.target_on.localeCompare(b.goal.target_on),
+  )
+  const first = sorted.find((s) => !s.done) ?? sorted[0]
+  const others = sorted.length - 1
+
+  return (
+    <section className={styles.goals}>
+      <div className={styles.goalsHead}>
+        <h2 className="sectionTitle">Objectifs</h2>
+        <Link href="/budget/objectifs" className={styles.limitButton}>
+          {others > 0 ? `Voir les ${sorted.length}` : 'Gérer'}
+        </Link>
+      </div>
+
+      <div className={styles.goalRow}>
+        <div className={styles.goalTop}>
+          <span className={styles.goalLabel}>
+            {first.goal.label}
+            {first.shared && <span className={styles.goalShared}>à deux</span>}
+          </span>
+          <span className={styles.goalAmount}>
+            {euros(first.goal.saved_cents)} / {roundedEuros(first.goal.target_cents)}
+          </span>
+        </div>
+
+        <div className={styles.gauge}>
+          <div
+            className={styles.gaugeFill}
+            style={{ width: `${Math.round(first.ratio * 100)}%` }}
+          />
+        </div>
+
+        <div className={styles.goalMeta}>
+          {first.done
+            ? 'Atteint'
+            : first.late
+              ? 'Échéance dépassée'
+              : `${euros(first.shareCents)} par mois · ${first.monthsLeft} mois restants`}
+        </div>
+      </div>
+    </section>
   )
 }

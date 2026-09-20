@@ -21,6 +21,7 @@ import { readTokenClaims, isFresh } from '../lib/supabase/token'
 import { daysInMonth, forecastMonth, remaining } from '../lib/forecast'
 import { monthlyTrend } from '../lib/expenses-shape'
 import { parseExpenseJson, rowKey, totalCents, MAX_ROWS } from '../lib/import'
+import { heldCents, monthsBetween, statusOf, type Goal } from '../lib/goals'
 
 let failures = 0
 function check(name: string, actual: unknown, expected: unknown) {
@@ -351,6 +352,52 @@ check('total en centimes', totalCents(lire('[{"date":"2026-09-14","libelle":"a",
 // La clé de doublon ignore la casse et les accents de l'intitulé.
 check('clé de doublon insensible à la casse', rowKey({ spentOn: '2026-09-14', amountCents: 300, label: 'Café' }),
   rowKey({ spentOn: '2026-09-14', amountCents: 300, label: 'CAFE' }))
+
+// ---------------------------------------------------------------------
+// Objectifs d'épargne.
+// Le chiffre qui compte est le montant mensuel, pas la progression.
+// ---------------------------------------------------------------------
+const objectif = (over: Partial<Goal> = {}): Goal => ({
+  id: 'g1', user_id: 'u1', group_id: null, label: 'Apport',
+  target_cents: 1_000_000, saved_cents: 0, target_on: '2027-06-01',
+  hold_in_budget: true, ...over,
+})
+const sept = fromWall(2026, 9, 20)
+
+check('mois pleins entre deux dates', monthsBetween(sept, fromWall(2027, 6, 1)), 9)
+check('même mois → zéro', monthsBetween(sept, fromWall(2026, 9, 30)), 0)
+
+// 10 000 € en 9 mois : c'est ce montant-là qui rend l'objectif parlant.
+check('montant mensuel', statusOf(objectif(), sept).monthlyCents, 111112)
+check('déjà épargné déduit', statusOf(objectif({ saved_cents: 550_000 }), sept).monthlyCents, 50000)
+check('progression', statusOf(objectif({ saved_cents: 250_000 }), sept).ratio, 0.25)
+
+// Un objectif atteint ne réclame plus rien, et ne pèse plus.
+const atteint = statusOf(objectif({ saved_cents: 1_000_000 }), sept)
+check('objectif atteint', [atteint.done, atteint.monthlyCents], [true, 0])
+check('jamais de reste négatif', statusOf(objectif({ saved_cents: 1_200_000 }), sept).remainingCents, 0)
+check('progression plafonnée à 1', statusOf(objectif({ saved_cents: 1_200_000 }), sept).ratio, 1)
+
+// Une échéance passée ne doit pas diviser par zéro : il reste ce mois-ci.
+const enRetard = statusOf(objectif({ target_on: '2026-08-01' }), sept)
+check('échéance passée → en retard', enRetard.late, true)
+check('échéance passée → le solde d’un coup', enRetard.monthlyCents, 1_000_000)
+// Échéance dans le mois en cours : en retard, non — il reste des jours.
+check('échéance ce mois-ci', statusOf(objectif({ target_on: '2026-09-30' }), sept).late, false)
+
+// Un objectif commun se partage en deux parts égales.
+const commun = statusOf(objectif({ group_id: 'grp' }), sept)
+check('part d’un objectif commun', [commun.shared, commun.shareCents], [true, 55556])
+check('objectif personnel : tout pour soi', statusOf(objectif(), sept).shareCents, 111112)
+
+// Ce qui pèse sur l'enveloppe : coché, ni atteint, ni en retard.
+check('ponction sur l’enveloppe', heldCents([
+  statusOf(objectif(), sept),
+  statusOf(objectif({ id: 'g2', hold_in_budget: false }), sept),
+  statusOf(objectif({ id: 'g3', saved_cents: 1_000_000 }), sept),
+  statusOf(objectif({ id: 'g4', target_on: '2026-08-01' }), sept),
+]), 111112)
+check('aucun objectif → rien à retenir', heldCents([]), 0)
 
 console.log(`\n${failures === 0 ? '✓ tout passe' : `✗ ${failures} échec(s)`}\n`)
 process.exit(failures === 0 ? 0 : 1)

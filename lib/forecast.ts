@@ -79,7 +79,9 @@ export type MonthForecast = {
   fixedCents: number
   /** Prévu et pas encore payé : c'est ce qu'il faut encore mettre de côté. */
   plannedPendingCents: number
-  /** Revenus − charges fixes − prévu restant. Ce qu'il y a à dépenser. */
+  /** Épargne retenue par les objectifs du mois. Voir `lib/goals.ts`. */
+  savingsCents: number
+  /** Revenus − charges − prévu restant − épargne. Ce qu'il y a à dépenser. */
   envelopeCents: number
 }
 
@@ -88,6 +90,13 @@ export function forecastMonth(
   incomes: Income[],
   fixed: FixedCharge[],
   planned: PlannedExpense[],
+  /*
+   * Ce que les objectifs d'épargne retiennent ce mois-ci, calculé par
+   * `heldCents` dans `lib/goals.ts`. Le passer en nombre plutôt qu'en
+   * liste garde ce module ignorant des objectifs : il ne connaît qu'une
+   * somme qui sort de l'enveloppe, comme une charge fixe.
+   */
+  savingsCents = 0,
 ): MonthForecast {
   const start = startOfMonth(month)
 
@@ -141,7 +150,8 @@ export function forecastMonth(
     incomeCents,
     fixedCents,
     plannedPendingCents,
-    envelopeCents: incomeCents - fixedCents - plannedPendingCents,
+    savingsCents,
+    envelopeCents: incomeCents - fixedCents - plannedPendingCents - savingsCents,
   }
 }
 

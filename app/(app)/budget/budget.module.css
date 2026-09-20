@@ -538,3 +538,86 @@
   font-weight: 700;
   color: var(--accent-ink);
 }
+
+/* --- Objectifs d'épargne ---------------------------------------------- */
+
+.goals,
+.goalsEmpty {
+  margin: 18px 20px 0 20px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--r-lg);
+}
+
+.goalsEmpty {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.goalsEmptyTitle {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.goalsEmptyText {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-soft);
+}
+
+.goalsHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.goalRow {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.goalTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.goalLabel {
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+.goalShared {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 50px;
+  background: var(--honey);
+  color: var(--honey-ink);
+  flex-shrink: 0;
+}
+
+.goalAmount {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.goalMeta {
+  font-size: 12px;
+  color: var(--ink-soft);
+}

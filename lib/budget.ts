@@ -3,6 +3,7 @@ import type { FixedCharge, Income, PlannedExpense } from './forecast'
 import { createClient } from './supabase/server'
 import { withPaletteColors } from './categories'
 import type { Budget, Category, Expense } from './types'
+import type { Goal } from './goals'
 
 /**
  * Budget personnel.
@@ -127,7 +128,7 @@ export async function loadDashboard(date: Date) {
   const next = addMonths(month, 1)
   const trendFrom = addMonths(month, -5)
 
-  const [budget, incomes, fixed, planned, history] = await Promise.all([
+  const [budget, incomes, fixed, planned, history, goals] = await Promise.all([
     loadMonth(month),
     supabase
       .from('incomes')
@@ -148,6 +149,12 @@ export async function loadDashboard(date: Date) {
       .select('amount_cents, spent_on')
       .gte('spent_on', isoDay(trendFrom))
       .lt('spent_on', isoDay(next)),
+    // Dans la même vague : un objectif retient de l'argent sur
+    // l'enveloppe, il fait partie du calcul du reste à vivre.
+    supabase
+      .from('savings_goals')
+      .select('id, user_id, group_id, label, target_cents, saved_cents, target_on, hold_in_budget')
+      .order('target_on'),
   ])
 
   return {
@@ -156,6 +163,9 @@ export async function loadDashboard(date: Date) {
     fixed: (fixed.data ?? []) as FixedCharge[],
     planned: (planned.data ?? []) as PlannedExpense[],
     history: (history.data ?? []) as { amount_cents: number; spent_on: string }[],
+    // Vide tant que migrations/005 n'a pas été exécutée : l'écran
+    // fonctionne sans, il ne montre simplement aucun objectif.
+    goals: (goals.data ?? []) as Goal[],
   }
 }
 

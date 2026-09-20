@@ -60,6 +60,7 @@ modèle ne décide jamais de ce qui entre en base.
 | `/budget/ajout` | `Ajout` | montant + pavé numérique custom + 8 catégories |
 | `/budget/tableau` | `Tableau` | recherche, filtres, sous-totaux par jour, export CSV |
 | `/budget/import` | — | relevé PDF ou captures, lus par un modèle de vision |
+| `/budget/objectifs` | — | objectifs d'épargne, personnels ou communs |
 | `/nous` | `Espace` | membres, prénoms, calendriers branchés, déconnexion |
 
 Navigation basse unifiée à quatre entrées : **Accueil · Agenda · Budget · Nous**.
