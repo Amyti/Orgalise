@@ -15,18 +15,25 @@ import styles from './import.module.css'
 const PREVIEW = 6
 
 /**
- * Côté long d'une image envoyée au modèle.
+ * Surface visée pour une image envoyée au modèle, en pixels.
  *
- * Une capture d'iPhone fait 1290 × 2796. La réduire ne coûte aucune
- * lisibilité sur du texte de relevé, et divise par cinq ce qui transite
- * et ce qui est facturé.
+ * Une image est facturée à peu près `surface / 750` jetons : c'est la
+ * surface qui compte, pas le côté le plus long. Plafonner celle-ci donne
+ * donc un coût stable quelle que soit la forme de la capture — portrait
+ * d'iPhone ou fenêtre d'ordinateur.
+ *
+ * 640 000 px, c'est environ 850 jetons par image. Une capture d'iPhone
+ * (1290 × 2796) descend à 545 × 1180, où le texte d'un relevé reste net.
+ * Si des montants étaient mal lus, c'est le premier chiffre à remonter :
+ * doubler cette valeur double le coût d'entrée, qui reste la moitié la
+ * moins chère de la facture.
  */
-const MAX_SIDE = 1400
+const MAX_PIXELS = 640_000
 
 /** Réduit et recompresse une image dans le navigateur, avant tout envoi. */
 async function shrink(file: File): Promise<string> {
   const bitmap = await createImageBitmap(file)
-  const ratio = Math.min(1, MAX_SIDE / Math.max(bitmap.width, bitmap.height))
+  const ratio = Math.min(1, Math.sqrt(MAX_PIXELS / (bitmap.width * bitmap.height)))
   const canvas = document.createElement('canvas')
   canvas.width = Math.round(bitmap.width * ratio)
   canvas.height = Math.round(bitmap.height * ratio)

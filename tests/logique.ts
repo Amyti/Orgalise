@@ -325,6 +325,20 @@ check('les lignes valides survivent', melange.rows.length, 1)
 check('les autres sont nommées', melange.rejects.map((r) => r.reason), ['date illisible', 'intitulé manquant'])
 check('rang conservé pour retrouver la ligne', melange.rejects[0].index, 1)
 
+// La forme compacte : quatre valeurs au lieu de quatre paires clé/valeur.
+// C'est la sortie qui coûte le plus cher au jeton, d'où ce format.
+check('forme compacte', lire('[["2026-09-14","Carrefour",42.9,"Courses"]]').rows,
+  [{ label: 'Carrefour', amountCents: 4290, spentOn: '2026-09-14', categoryName: 'Courses' }])
+// L'ordre annoncé n'est pas l'ordre garanti : chaque valeur est
+// reconnue à sa nature, pas à sa position.
+check('ordre inversé', lire('[[42.9,"Courses","Carrefour","2026-09-14"]]').rows[0],
+  { label: 'Courses', amountCents: 4290, spentOn: '2026-09-14', categoryName: 'Autre' })
+check('montant compact en chaîne', lire('[["2026-09-14","Carrefour","42,90","Courses"]]').rows[0].amountCents, 4290)
+check('compact sans catégorie', lire('[["2026-09-14","Carrefour",42.9]]').rows[0].categoryName, 'Autre')
+check('compact tronqué → refusé', lire('[["Carrefour"]]').rejects[0].reason, 'montant illisible')
+// Les deux formes cohabitent : une IA tierce peut encore rendre des objets.
+check('objets et tableaux mêlés', lire('[["2026-09-14","a",1,"Courses"],{"date":"2026-09-15","libelle":"b","montant":2}]').rows.length, 2)
+
 check('montant nul écarté', lire('[{"date":"2026-09-14","libelle":"x","montant":0}]').rejects[0].reason, 'montant nul')
 check('texte libre refusé', lire('bonjour').error !== null, true)
 check('liste vide signalée', lire('[]').error, 'La liste est vide.')

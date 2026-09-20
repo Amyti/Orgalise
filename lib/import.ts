@@ -188,11 +188,15 @@ export function parseExpenseJson(raw: string, known: string[]): ImportResult {
   const rejects: ImportReject[] = []
 
   list.slice(0, MAX_ROWS).forEach((entry, index) => {
-    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+    if (!entry || typeof entry !== 'object') {
       rejects.push({ index, reason: "ce n'est pas une dépense" })
       return
     }
-    const row = entry as Record<string, unknown>
+    // Forme compacte `["2026-09-14","Carrefour",42.9,"Courses"]` : on la
+    // ramène aux mêmes clés que la forme développée avant de continuer.
+    const row = Array.isArray(entry)
+      ? spread(entry)
+      : (entry as Record<string, unknown>)
 
     const amount = cents(field(row, AMOUNT))
     if (amount === null) {
@@ -232,6 +236,40 @@ export function parseExpenseJson(raw: string, known: string[]): ImportResult {
   return { rows, rejects, error: null }
 }
 
+/**
+ * Range un tableau positionnel en champs nommés.
+ *
+ * On ne se fie pas à l'ordre annoncé : un modèle intervertit volontiers
+ * l'intitulé et la catégorie. Chaque valeur est reconnue à sa nature —
+ * ce qui ressemble à une date en est une, ce qui est un nombre est le
+ * montant — et les chaînes restantes tombent dans l'ordre naturel,
+ * intitulé puis catégorie.
+ */
+function spread(entry: unknown[]): Record<string, unknown> {
+  const row: Record<string, unknown> = {}
+  const texts: unknown[] = []
+
+  for (const value of entry) {
+    if (row.date === undefined && isoDate(value) !== null) {
+      row.date = value
+    } else if (row.montant === undefined && cents(value) !== null && typeof value !== 'string') {
+      row.montant = value
+    } else {
+      texts.push(value)
+    }
+  }
+
+  // Un montant écrit « 42,90 » reste une chaîne : on le repêche ici.
+  if (row.montant === undefined) {
+    const i = texts.findIndex((t) => typeof t === 'string' && cents(t) !== null && /\d/.test(t))
+    if (i >= 0) row.montant = texts.splice(i, 1)[0]
+  }
+
+  if (texts.length > 0) row.libelle = texts[0]
+  if (texts.length > 1) row.categorie = texts[1]
+  return row
+}
+
 /** Clé d'unicité d'une dépense : même jour, même montant, même intitulé. */
 export function rowKey(row: { spentOn: string; amountCents: number; label: string }): string {
   return `${row.spentOn}|${row.amountCents}|${plain(row.label)}`
@@ -255,14 +293,14 @@ export function promptFor(known: string[]): string {
     "Voici des captures d'écran de mon relevé bancaire.",
     '',
     'Réponds uniquement par un tableau JSON, sans phrase avant ni après.',
-    'Une entrée par dépense, avec exactement ces quatre champs :',
+    'Une ligne par dépense, sous cette forme exacte :',
     '',
-    '  {"date": "AAAA-MM-JJ", "libelle": "Nom du commerce", "montant": 12.34, "categorie": "Courses"}',
+    '  ["AAAA-MM-JJ", "Nom du commerce", 12.34, "Courses"]',
     '',
-    `La catégorie doit être l'une de celles-ci, à l'identique : ${known.join(', ')}.`,
-    "Si tu hésites, mets « Autre » plutôt que d'inventer une catégorie.",
+    `Catégories possibles : ${known.join(', ')}.`,
+    "En cas de doute, mets « Autre » plutôt que d'en inventer une.",
     '',
-    "N'inclus que des dépenses : ignore les virements reçus, les salaires",
-    'et les remboursements. Les montants sont positifs, en euros.',
+    'Uniquement des dépenses : ignore les virements reçus, les salaires et',
+    'les remboursements. Montants positifs, en euros.',
   ].join('\n')
 }

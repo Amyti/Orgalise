@@ -12,13 +12,24 @@ import 'server-only'
 /*
  * Haiku 4.5 : cette tâche est de la lecture de tableau, pas du
  * raisonnement, et l'écran d'aperçu rattrape une erreur avant qu'elle
- * n'atteigne la base. Passer à 'claude-sonnet-5' ne demande que de
- * changer cette ligne, si les relevés s'avéraient trop coriaces.
+ * n'atteigne la base. C'est aussi le moins cher des modèles de vision
+ * de la famille. Passer à 'claude-sonnet-5' ne demande que de changer
+ * cette ligne, si les relevés s'avéraient trop coriaces.
+ *
+ * Les jetons de sortie coûtent cinq fois ceux d'entrée : c'est pourquoi
+ * l'invite réclame une forme compacte plutôt que des objets nommés.
  */
 const MODEL = 'claude-haiku-4-5-20251001'
 
-/** Assez pour une trentaine de dépenses détaillées. */
-const MAX_TOKENS = 4000
+/**
+ * Plafond de sortie.
+ *
+ * On ne paie que ce qui est réellement produit ; ce nombre borne le pire
+ * cas plutôt qu'il ne fixe un coût. Au format compact, une dépense pèse
+ * une quinzaine de jetons : 2 000 en couvrent bien plus de cent, soit
+ * davantage que ce que six captures peuvent contenir.
+ */
+const MAX_TOKENS = 2000
 
 /** Au-delà, l'envoi devient lourd et la lecture perd en fiabilité. */
 export const MAX_IMAGES = 6

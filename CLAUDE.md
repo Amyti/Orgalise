@@ -295,6 +295,25 @@ La réponse du modèle est forcée à commencer par `[` — on écrit ce
 crochet à sa place dans le tour assistant. Il n'a plus d'endroit où
 glisser « Voici les dépenses que j'ai relevées : ».
 
+**Ce qui coûte cher, et ce qui n'en a pas l'air.** Les jetons de sortie
+valent cinq fois ceux d'entrée. D'où deux choix qui pourraient sembler
+arbitraires :
+
+- L'invite réclame la **forme compacte**
+  `["2026-09-14", "Carrefour", 42.90, "Courses"]` et non des objets
+  nommés. Quatre valeurs au lieu de quatre paires, c'est moitié moins de
+  sortie. `parseExpenseJson` accepte toujours les deux, et range le
+  tableau **par nature de valeur, pas par position** : un modèle qui
+  intervertit intitulé et catégorie ne casse rien.
+- Une image est facturée `surface / 750` jetons. On plafonne donc la
+  **surface** (`MAX_PIXELS`), pas le côté le plus long : le coût devient
+  indépendant de la forme de la capture.
+
+Ensemble, environ 0,5 centime par import de trois captures — moitié
+moins qu'avec des objets nommés et des images en pleine taille. Si des
+montants étaient mal lus, `MAX_PIXELS` est le premier chiffre à
+remonter : l'entrée est la moitié la moins chère.
+
 `lib/import.ts` fait la lecture, à part de React et de la base, donc
 testable — une trentaine d'assertions dans `tests/logique.ts`. Le texte
 vient d'un modèle de langage : les clés changent de nom, les montants
