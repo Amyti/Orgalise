@@ -355,9 +355,11 @@ check('le passé reste accepté', lireAu('[["2024-09-14","x",3]]').rows.length, 
 // L'invite doit situer le modèle dans le temps, sinon il invente l'année.
 const invite = promptFor(CATS, maintenant)
 check("l'invite donne la date du jour", invite.includes('20 septembre 2026'), true)
-check("l'invite nomme l'année précédente", invite.includes('2025'), true)
 check("l'invite liste les catégories", invite.includes('Abonnements'), true)
-check("l'invite écarte les crédits", invite.includes('virement reçu'), true)
+check("l'invite écarte les crédits", invite.includes('virements reçus'), true)
+// Elle doit rester courte : une version à 440 jetons, pleine
+// d'interdictions, lisait moins bien que quelques phrases simples.
+check("l'invite reste brève", invite.length < 700, true)
 
 check('montant nul écarté', lire('[{"date":"2026-09-14","libelle":"x","montant":0}]').rejects[0].reason, 'montant nul')
 // Le modèle n'est plus bâillonné par un préremplissage : il peut

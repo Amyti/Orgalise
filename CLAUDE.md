@@ -422,24 +422,30 @@ prendre un pour une dépense gonfle le total du mois entier. Le symptôme
 est reconnaissable : moins de lignes que la réalité, mais un total plus
 élevé.
 
-**Elle donne la date du jour**, parce qu'un relevé affiche « 14 sept. »
-sans année et qu'un modèle non situé dans le temps en invente une. Le
-symptôme est spectaculaire et silencieux : tout l'import atterrit en
-septembre 2024, dans un mois que personne ne consultera jamais. L'invite
-explique donc la déduction — une opération ne peut pas être dans le
-futur, un mois postérieur au mois en cours appartient à l'année
-précédente — et `parseExpenseJson` écarte de son côté toute date future,
-garde-fou indépendant du modèle.
+**L'invite reste courte, et c'est un résultat, pas une économie.** Elle
+a fait jusqu'à 440 jetons : paragraphes en majuscules, liste
+d'interdictions, règles de déduction détaillées, une consigne ajoutée
+après chaque lecture ratée. Elle lisait **moins bien** que la dizaine de
+lignes actuelles — le modèle dépensait son attention à respecter des
+consignes plutôt qu'à lire le document. Le même modèle, dans une
+interface de chat et avec une demande simple, relevait soixante-deux
+opérations là où l'app en rendait cinquante-six.
 
-**Elle explique comment reconnaître un crédit** et pas seulement qu'il
-faut l'ignorer : signe « + », couleur verte, libellés virement reçu,
-salaire, remboursement, remise, avoir. Dire « ignore les virements
-reçus » ne suffit pas si l'on ne dit pas à quoi ça ressemble.
+N'y figure donc que ce qu'il ne peut pas deviner : la date du jour — un
+relevé écrit « 14 sept. » sans année, et un modèle non situé dans le
+temps en invente une, ce qui expédiait tout l'import en septembre 2024 —
+le format attendu, les catégories existantes, et le sens des opérations
+qui nous intéresse.
 
-**L'invite ne s'optimise pas.** Elle vaut ~440 jetons, soit 0,04 centime
-par requête, sur une entrée cinq fois moins chère que la sortie. Chaque
-tentative pour la raccourcir a coûté des dépenses manquantes ou fausses.
-La précision de l'invite est le levier le moins cher du système.
+**Tout le reste est rattrapé par le code**, qui ne se fatigue pas et ne
+négocie pas : `parseExpenseJson` écarte les dates futures, résout les
+catégories inventées, et la fusion des lectures supprime les doublons.
+Une règle dans l'invite est une prière ; une règle dans le code est une
+garantie.
+
+Si la lecture se dégrade, la tentation sera d'ajouter une consigne. C'est
+ce qui a échoué quatre fois. Comparer avec ce que donne le même modèle
+dans une interface de chat est plus instructif.
 
 **Ce qui coûte cher, et ce qui n'en a pas l'air.** Les jetons de sortie
 valent cinq fois ceux d'entrée. D'où deux choix qui pourraient sembler

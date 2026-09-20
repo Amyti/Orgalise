@@ -346,57 +346,38 @@ export function totalCents(rows: ImportRow[]): number {
 }
 
 /**
- * Texte à remettre à l'IA avec les captures d'écran.
+ * Texte remis au modèle avec le relevé.
  *
- * Il vit ici, contre le lecteur, pour que les deux ne divergent pas :
- * si `parseExpenseJson` cesse d'accepter une forme, c'est cette invite
- * qu'il faut corriger en même temps. Les catégories proposées sont
- * celles de la personne, jamais une liste figée — une catégorie inventée
- * retomberait dans « Autre » sans qu'elle comprenne pourquoi.
+ * Volontairement court. Une version précédente faisait le triple :
+ * paragraphes en majuscules, liste d'interdictions, règles de déduction
+ * détaillées. Elle produisait de moins bons résultats que quelques
+ * phrases simples — le modèle dépensait son attention à respecter des
+ * consignes au lieu de lire le document.
+ *
+ * Ne reste donc que ce qu'il ne peut pas deviner : la date du jour (un
+ * relevé écrit « 14 sept. » sans année), le format attendu, les
+ * catégories existantes, et le sens des opérations qui nous intéresse.
+ * Tout le reste — dates futures, doublons, catégories inventées — est
+ * rattrapé par le code, qui ne se fatigue pas et ne négocie pas.
+ *
+ * Si la lecture se dégrade, la tentation sera d'ajouter une règle ici.
+ * C'est ce qui a échoué. Mieux vaut comparer avec ce que donne le même
+ * modèle dans une interface de chat, qui sert d'étalon.
  */
 export function promptFor(known: string[], now: Date = new Date()): string {
   const w = wall(now)
-  const aujourdhui = `${w.day} ${MOIS[w.month - 1]} ${w.year}`
 
   return [
-    'Voici mon relevé bancaire, en captures ou en PDF.',
+    `Voici mon relevé bancaire. Nous sommes le ${w.day} ${MOIS[w.month - 1]} ${w.year}.`,
     '',
-    `Nous sommes le ${aujourdhui}.`,
+    "Relève toutes les dépenses, c'est-à-dire l'argent qui sort du compte.",
+    'Ni les virements reçus, ni les salaires, ni les soldes affichés.',
     '',
-    'Réponds uniquement par un tableau JSON, sans phrase avant ni après.',
-    'Une ligne par dépense, sous cette forme exacte :',
+    'Réponds par un tableau JSON, une ligne par dépense :',
     '',
     '  ["AAAA-MM-JJ", "Nom du commerce", 12.34, "Courses"]',
     '',
-    "LA DATE. Un relevé affiche souvent le jour et le mois sans l'année.",
-    `Déduis-la de la date du jour : nous sommes en ${w.year}, et une`,
-    "opération ne peut pas être dans le futur. Une ligne du 14 septembre",
-    `est donc du 14 septembre ${w.year} ; une ligne d'un mois postérieur`,
-    `au mois en cours appartient à ${w.year - 1}. N'écris jamais une`,
-    'année que tu n\'as pas déduite ainsi.',
-    '',
-    "CE QU'IL NE FAUT PAS PRENDRE. Uniquement l'argent qui SORT du",
-    "compte. Un relevé mélange les deux sens, et l'argent qui ENTRE se",
-    'reconnaît à un signe « + », à une couleur verte, ou à un libellé du',
-    'genre virement reçu, salaire, paie, remboursement, remise, crédit,',
-    "avoir. Ne relève aucune de ces lignes. Dans le doute sur le sens",
-    "d'une opération, ne la prends pas : une dépense manquante se",
-    'rattrape, une fausse dépense fausse tout le mois.',
-    '',
-    'Ignore également les soldes, les totaux, les en-têtes et les',
-    "plafonds de carte : ce sont des chiffres d'affichage.",
-    '',
-    `LA CATÉGORIE, l'une de celles-ci exactement : ${known.join(', ')}.`,
-    "En cas de doute, mets « Autre » plutôt que d'en inventer une.",
-    '',
-    'Sois exhaustif. Parcours de haut en bas et relève TOUTES les lignes',
-    'de dépense, y compris les petits montants et celles qui se',
-    "ressemblent. N'abrège pas, ne résume pas, ne saute aucune opération",
-    'même répétée. Recopie les montants exactement comme affichés, sans',
-    'rien arrondir ni recalculer.',
-    '',
-    'Tu peux examiner le document avant de répondre. Termine par le',
-    'tableau JSON, seul, sans commentaire après lui.',
+    `Catégories possibles : ${known.join(', ')}. Mets « Autre » si tu hésites.`,
   ].join('\n')
 }
 
