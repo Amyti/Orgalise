@@ -33,8 +33,17 @@ const MODEL = 'claude-haiku-4-5-20251001'
  */
 const MAX_TOKENS = 3000
 
-/** Au-delà, l'envoi devient lourd et la lecture perd en fiabilité. */
-export const MAX_IMAGES = 6
+/**
+ * Plafond de pièces par import.
+ *
+ * Il a valu 6, et rognait en silence : quelqu'un qui en choisissait onze
+ * en voyait cinq disparaître sans un mot, et croyait le modèle mauvais.
+ * Depuis qu'on envoie une requête par pièce, la fiabilité ne dépend plus
+ * du nombre ; seule la taille de l'envoi compte, et le navigateur la
+ * découpe en plusieurs requêtes. Ce nombre n'est donc qu'un garde-fou
+ * large.
+ */
+export const MAX_IMAGES = 24
 
 /**
  * Une pièce à lire : capture d'écran ou relevé PDF.

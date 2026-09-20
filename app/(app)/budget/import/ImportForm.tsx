@@ -51,9 +51,15 @@ function asDataUrl(file: File): Promise<string> {
 }
 
 /**
- * Au-delà, l'envoi risque de dépasser la taille maximale d'une requête
- * serveur. On repasse alors en JPEG très peu compressé.
+ * Taille maximale d'un envoi vers le serveur, en caractères de data URL.
+ *
+ * Une fonction serveur refuse les requêtes trop grosses. Au-delà de ce
+ * seuil, les pièces sont découpées en plusieurs envois — ce qui ne coûte
+ * rien, puisque le serveur fait de toute façon une requête par pièce.
  */
+const LOT_MAX_CHARS = 2_800_000
+
+/** Au-delà, l'envoi risque de dépasser la taille d'une requête serveur. */
 const MAX_PNG_CHARS = 900_000
 
 /**
@@ -68,7 +74,7 @@ const MAX_PNG_CHARS = 900_000
  * Le coût ne bouge pas : une image est facturée à ses dimensions, jamais
  * à son poids. Seule la taille de l'envoi augmente, d'où le repli.
  */
-async function shrink(file: File): Promise<string> {
+async function shrink(file: File, beaucoup: boolean): Promise<string> {
   const bitmap = await createImageBitmap(file)
   const ratio = Math.min(1, Math.sqrt(MAX_PIXELS / (bitmap.width * bitmap.height)))
   const canvas = document.createElement('canvas')
@@ -77,8 +83,38 @@ async function shrink(file: File): Promise<string> {
   canvas.getContext('2d')?.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
   bitmap.close()
 
+  // À partir d'une certaine quantité, le PNG ferait exploser le nombre
+  // d'envois. JPEG 0,92 reste très au-dessus du 0,8 qui brouillait les
+  // montants, pour un tiers du poids.
+  if (beaucoup) return canvas.toDataURL('image/jpeg', 0.92)
+
   const png = canvas.toDataURL('image/png')
   return png.length <= MAX_PNG_CHARS ? png : canvas.toDataURL('image/jpeg', 0.95)
+}
+
+/**
+ * Répartit les pièces en envois qui tiennent dans une requête.
+ *
+ * Une pièce plus grosse que le seuil part seule : mieux vaut un envoi
+ * trop gros qui échoue en le disant qu'une pièce écartée en silence.
+ */
+function enLots(pieces: Piece[], maxChars: number): Piece[][] {
+  const lots: Piece[][] = []
+  let lot: Piece[] = []
+  let taille = 0
+
+  for (const piece of pieces) {
+    const n = piece.url.length
+    if (lot.length > 0 && taille + n > maxChars) {
+      lots.push(lot)
+      lot = []
+      taille = 0
+    }
+    lot.push(piece)
+    taille += n
+  }
+  if (lot.length > 0) lots.push(lot)
+  return lots
 }
 
 export function ImportForm({ known, aiReady, maxImages }: {
@@ -87,12 +123,21 @@ export function ImportForm({ known, aiReady, maxImages }: {
   aiReady: boolean
   maxImages: number
 }) {
-  const [analyse, analyseAction, analysing] = useActionState(analyseScreenshots, initialAnalyseState)
   const [saved, importAction, saving] = useActionState(importExpenses, initialImportState)
+
+  /*
+   * L'analyse n'est plus une action de formulaire mais une boucle : les
+   * pièces partent en plusieurs envois quand elles ne tiennent pas dans
+   * une requête. C'est ce qui permet d'en accepter onze au lieu de six.
+   */
+  const [analyse, setAnalyse] = useState(initialAnalyseState)
+  const [analysing, setAnalysing] = useState(false)
+  const [progres, setProgres] = useState('')
 
   const [shots, setShots] = useState<Piece[]>([])
   const [preparing, setPreparing] = useState(false)
   const [tooBig, setTooBig] = useState(false)
+  const [tropDe, setTropDe] = useState(0)
   const [raw, setRaw] = useState('')
   const [manual, setManual] = useState(!aiReady)
   const [copied, setCopied] = useState(false)
@@ -103,15 +148,71 @@ export function ImportForm({ known, aiReady, maxImages }: {
     if (analyse.status === 'ok' && analyse.json) setRaw(analyse.json)
   }, [analyse])
 
+  async function lire() {
+    const lots = enLots(shots, LOT_MAX_CHARS)
+    setAnalysing(true)
+    setAnalyse(initialAnalyseState)
+    setProgres('')
+
+    const lignes: unknown[] = []
+    const echecs: string[] = []
+
+    try {
+      for (let i = 0; i < lots.length; i++) {
+        if (lots.length > 1) setProgres(`Lot ${i + 1} sur ${lots.length}…`)
+
+        const formData = new FormData()
+        for (const piece of lots[i]) formData.append('shot', piece.url)
+
+        const resultat = await analyseScreenshots(initialAnalyseState, formData)
+        if (resultat.status === 'ok' && resultat.json) {
+          try {
+            const lues = JSON.parse(resultat.json)
+            if (Array.isArray(lues)) lignes.push(...lues)
+          } catch {
+            // Un lot illisible ne doit pas emporter les autres.
+            echecs.push(resultat.message)
+          }
+        } else {
+          echecs.push(resultat.message)
+        }
+      }
+    } finally {
+      setAnalysing(false)
+      setProgres('')
+    }
+
+    if (lignes.length === 0) {
+      setAnalyse({
+        status: 'error',
+        message: echecs[0] ?? "Aucune dépense n'a pu être lue.",
+        json: '',
+      })
+      return
+    }
+
+    setAnalyse({
+      status: 'ok',
+      message: echecs.length > 0 ? `Lecture partielle : ${echecs.length} lot en échec.` : '',
+      json: JSON.stringify(lignes),
+    })
+  }
+
   const prompt = useMemo(() => promptFor(known), [known])
   const parsed = useMemo(() => parseExpenseJson(raw, known), [raw, known])
   const total = totalCents(parsed.rows)
 
   async function onPick(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []).slice(0, maxImages - shots.length)
+    const choisis = Array.from(e.target.files ?? [])
+    const place = maxImages - shots.length
+    // Rogner en silence est ce qui a fait croire pendant des jours que le
+    // modèle lisait mal : il manquait simplement la moitié des captures.
+    if (choisis.length > place) setTropDe(choisis.length - place)
+    const files = choisis.slice(0, place)
     if (files.length === 0) return
     setPreparing(true)
     setTooBig(false)
+    setTropDe(0)
     try {
       const next: Piece[] = []
       for (const file of files) {
@@ -124,7 +225,11 @@ export function ImportForm({ known, aiReady, maxImages }: {
           }
           next.push({ kind: 'pdf', url: await asDataUrl(file), name: file.name })
         } else {
-          next.push({ kind: 'image', url: await shrink(file), name: file.name })
+          next.push({
+            kind: 'image',
+            url: await shrink(file, shots.length + files.length > 4),
+            name: file.name,
+          })
         }
       }
       setShots((current) => [...current, ...next].slice(0, maxImages))
@@ -194,7 +299,7 @@ export function ImportForm({ known, aiReady, maxImages }: {
     <>
       {/* --- 1. Les captures ---------------------------------------- */}
       {aiReady && !manual && (
-        <form action={analyseAction} className={styles.section}>
+        <div className={styles.section}>
           <div className={styles.sectionHead}>
             <h2 className="sectionTitle">Ton relevé</h2>
             {shots.length > 0 && (
@@ -220,7 +325,6 @@ export function ImportForm({ known, aiReady, maxImages }: {
                       <img src={piece.url} alt={`Capture ${i + 1}`} className={styles.shotImg} />
                     </>
                   )}
-                  <input type="hidden" name="shot" value={piece.url} />
                   <button
                     type="button"
                     className={styles.shotRemove}
@@ -266,6 +370,13 @@ export function ImportForm({ known, aiReady, maxImages }: {
             réduites sur ton téléphone avant l'envoi ; rien n'est conservé.
           </p>
 
+          {tropDe > 0 && (
+            <div className="errorBox" role="alert">
+              {tropDe} pièce{tropDe > 1 ? 's' : ''} n'{tropDe > 1 ? 'ont' : 'a'} pas
+              été retenue{tropDe > 1 ? 's' : ''} : le maximum est de {maxImages}.
+            </div>
+          )}
+
           {tooBig && (
             <div className="noticeBox" role="status">
               Un fichier dépassait 5 Mo et a été écarté. Un relevé mensuel
@@ -281,12 +392,17 @@ export function ImportForm({ known, aiReady, maxImages }: {
 
           {shots.length > 0 && parsed.rows.length === 0 && (
             <div className={styles.actions}>
-              <button type="submit" className="btnPrimary" disabled={busy}>
-                {analysing ? 'Lecture en cours…' : 'Lire mes dépenses'}
+              <button
+                type="button"
+                className="btnPrimary"
+                onClick={lire}
+                disabled={busy}
+              >
+                {analysing ? progres || 'Lecture en cours…' : 'Lire mes dépenses'}
               </button>
             </div>
           )}
-        </form>
+        </div>
       )}
 
       {/* --- 1 bis. La sortie de secours ---------------------------- */}

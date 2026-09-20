@@ -397,6 +397,19 @@ coûtaient bien plus.
 `temperature: 0` : relever un relevé n'est pas un exercice de style, on
 veut la même réponse deux fois de suite.
 
+**Aucune limite silencieuse.** Le plafond de pièces a valu 6 et rognait
+sans le dire : quelqu'un qui choisissait onze captures en voyait cinq
+disparaître, obtenait la moitié de ses dépenses, et concluait que le
+modèle lisait mal. Plusieurs jours ont été perdus à corriger l'invite et
+le modèle pour un défaut d'interface. Le plafond est désormais large (24)
+et **ce qui est écarté est annoncé**. Règle générale : ne jamais jeter
+silencieusement ce que quelqu'un vient de fournir.
+
+Le navigateur répartit les pièces en plusieurs envois quand elles ne
+tiennent pas dans une requête serveur, et le format suit — PNG jusqu'à
+quatre pièces, JPEG 0,92 au-delà, qui reste très au-dessus du 0,8 qui
+brouillait les montants.
+
 **Une requête par pièce, jamais un lot.** Envoyer six captures d'un coup
 paraissait économique — une invite, un aller-retour. Mais on demandait
 alors d'énumérer sans faute une centaine de lignes réparties sur
